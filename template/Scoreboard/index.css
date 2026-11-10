@@ -206,6 +206,15 @@ img[src$="/PlayerAlive.png"] { filter: url(#scoreboard-alive-yellow); }
   opacity: 0.9;
 }
 
+/* The banner stays gold while the row underneath is already gray. */
+.rank-row.wiped.elimination-active > :is(.rank-row-data, .rank-row-background) {
+  filter: grayscale(1);
+}
+
+.rank-row.elimination-active > .rank-row-data {
+  z-index: 1;
+}
+
 .row-elimination-banner {
   display: none;
   position: absolute;
@@ -224,12 +233,12 @@ img[src$="/PlayerAlive.png"] { filter: url(#scoreboard-alive-yellow); }
 
 .elimination-active .row-elimination-banner {
   display: grid;
-  animation: elimination-banner 3400ms ease-out var(--elimination-delay, 0ms) both;
+  animation: elimination-banner var(--elimination-duration) ease-out var(--elimination-delay, 0ms) both;
 }
 
 @keyframes elimination-banner {
   0% { clip-path: inset(0 100% 0 0); opacity: 0.55; }
-  9%, 91% { clip-path: inset(0); opacity: 1; }
+  9%, 94% { clip-path: inset(0); opacity: 1; }
   100% { clip-path: inset(0); opacity: 0; }
 }
 

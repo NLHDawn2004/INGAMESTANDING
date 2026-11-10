@@ -80,7 +80,7 @@
     const prevMatchesElims = new Map();
     const allTeamsData = new Map(); // Lưu trữ tất cả team data (cả hiển thị và ẩn)
     const confirmedEliminations = new Map();
-    const eliminationDuration = 3400;
+    const eliminationDuration = 4000;
     const applyTeamBranding = connectTeamBranding(apply => {
       ranks.querySelectorAll(".rank-row").forEach(row => apply(
         row.id, row.querySelector(".rank-row-data-teamname span"), row.querySelector(".rank-row-data-logo img")
@@ -112,6 +112,7 @@
       if (started === undefined) return;
       const elapsed = performance.now() - started;
       row.classList.add("wiped");
+      row.style.setProperty("--elimination-duration", `${eliminationDuration}ms`);
       row.style.setProperty("--elimination-delay", `${-elapsed}ms`);
       row.classList.toggle("elimination-active", elapsed < eliminationDuration);
     }
