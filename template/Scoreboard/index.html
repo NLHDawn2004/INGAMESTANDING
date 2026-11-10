@@ -93,6 +93,7 @@
 
     function updateCpr(settings) {
       cpr = settings;
+      ranks.style.setProperty("--cpr-outline-color", settings.outlineColor || "#ffffff");
       paintCpr();
     }
 

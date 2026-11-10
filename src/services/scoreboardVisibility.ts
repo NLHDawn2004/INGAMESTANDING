@@ -2,8 +2,10 @@ import express, { type Request, type Response } from "express";
 import fs from "node:fs";
 import path from "node:path";
 
-type CprSettings = { threshold: number | null };
+type CprSettings = { threshold: number | null; outlineColor: string };
 const defaultIcon = "/overlays/Scoreboard/assets/cpr-crown.png";
+const defaultOutlineColor = "#ffffff";
+const hexColor = /^#[0-9a-f]{6}$/i;
 
 function sameOrigin(req: Request) {
   const origin = req.get("origin");
@@ -13,13 +15,14 @@ function sameOrigin(req: Request) {
 function readCprSettings(file: string): CprSettings {
   try {
     const saved = JSON.parse(fs.readFileSync(file, "utf8"));
-    if (saved && (saved.threshold === null || (Number.isSafeInteger(saved.threshold) && saved.threshold > 0))) {
-      return { threshold: saved.threshold };
-    }
-    return { threshold: null };
+    return {
+      threshold: Number.isSafeInteger(saved?.threshold) && saved.threshold > 0 ? saved.threshold : null,
+      outlineColor: typeof saved?.outlineColor === "string" && hexColor.test(saved.outlineColor)
+        ? saved.outlineColor.toLowerCase() : defaultOutlineColor,
+    };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") console.warn("Could not load saved CPR settings.");
-    return { threshold: null };
+    return { threshold: null, outlineColor: defaultOutlineColor };
   }
 }
 
@@ -30,7 +33,7 @@ export function createScoreboardVisibilityRouter(cprFile = path.resolve("scorebo
   let cpr = readCprSettings(cprFile);
 
   function publicCpr() {
-    return { threshold: cpr.threshold, iconUrl: defaultIcon };
+    return { ...cpr, iconUrl: defaultIcon };
   }
 
   function sendCpr(viewer: Response) {
@@ -77,11 +80,14 @@ export function createScoreboardVisibilityRouter(cprFile = path.resolve("scorebo
   router.get("/cpr", (_req, res) => res.set("Cache-Control", "no-store").json(publicCpr()));
   router.put("/cpr", express.json({ limit: "1kb" }), (req, res) => {
     if (!sameOrigin(req)) return res.status(403).json({ message: "Hãy chỉnh CPR từ bảng điều khiển." });
-    const { threshold } = req.body ?? {};
+    const { threshold, outlineColor = cpr.outlineColor } = req.body ?? {};
     if (threshold !== null && (!Number.isSafeInteger(threshold) || threshold < 1)) {
       return res.status(400).json({ message: "Điểm CPR không hợp lệ." });
     }
-    const next: CprSettings = { threshold };
+    if (typeof outlineColor !== "string" || !hexColor.test(outlineColor)) {
+      return res.status(400).json({ message: "Màu vệt sáng CPR không hợp lệ." });
+    }
+    const next: CprSettings = { threshold, outlineColor: outlineColor.toLowerCase() };
     try {
       fs.writeFileSync(`${cprFile}.tmp`, JSON.stringify(next));
       fs.renameSync(`${cprFile}.tmp`, cprFile);

@@ -232,13 +232,12 @@ img[src$="/PlayerAlive.png"] { filter: url(#scoreboard-alive-yellow); }
 }
 
 .row-cpr-outline rect {
-  stroke: white;
-  stroke-width: 2;
+  stroke: var(--cpr-outline-color, #ffffff);
+  stroke-width: 1.75;
   stroke-linecap: round;
-  stroke-dasharray: 20 80;
+  stroke-dasharray: 27 73;
   vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 1px rgb(255 255 255 / 90%))
-    drop-shadow(0 0 3px rgb(255 255 255 / 55%));
+  filter: drop-shadow(0 0 1.5px var(--cpr-outline-color, #ffffff));
   animation: cpr-border-trace 2s linear infinite;
 }
 
