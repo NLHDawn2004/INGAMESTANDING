@@ -1,5 +1,7 @@
-const key = location.hash.slice(1);
-if (key && location.pathname === "/control") {
+function openControlLink() {
+  const key = location.hash.slice(1);
+  if (!key || location.pathname !== "/control") return;
+
   history.replaceState(null, "", "/control");
   const status = document.getElementById("control-status");
   status.textContent = "Đang mở bảng điều khiển…";
@@ -14,3 +16,6 @@ if (key && location.pathname === "/control") {
     status.textContent = "Không mở được bảng điều khiển. Hãy dùng lại link điều khiển riêng.";
   });
 }
+
+window.addEventListener("hashchange", openControlLink);
+openControlLink();
