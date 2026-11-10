@@ -1,6 +1,9 @@
 import express from 'express'
 import path from 'path'
 import fs from 'node:fs'
+import os from 'node:os'
+import { createHostedAccess } from './services/hosted';
+import { LOG_PORT } from './constants/port';
 
 import FreeFireMatchStats from './services/Stats';
 import teamBranding from './services/teamBranding';
@@ -14,7 +17,16 @@ import { configDotenv } from 'dotenv';
 configDotenv();
 
 const app = express();
-const port = process.env.LOCAL_PORT || 3000;
+const hosted = process.env.RENDER === "true" || process.env.SCOREBOARD_HOSTED === "true";
+const hostedAccess = hosted ? createHostedAccess(process.env.SCOREBOARD_PASSWORD) : null;
+const port = Number(process.env.PORT || process.env.LOCAL_PORT || 3000);
+const hostedLogDirectory = hosted ? fs.mkdtempSync(path.join(os.tmpdir(), "ff-scoreboard-")) : null;
+const hostedLogPath = hostedLogDirectory && path.join(hostedLogDirectory, "debug.log");
+if (hostedLogDirectory) {
+  app.set("trust proxy", 1);
+  app.use(hostedAccess!.protect);
+  process.once("exit", () => fs.rmSync(hostedLogDirectory, { recursive: true, force: true }));
+}
 
 type GroupInput = {
   groupId: string;
@@ -190,16 +202,24 @@ function validateCreateListenerPayload(body: unknown): {
 
 // ============ Middleware ============
 app.use('/api/team-branding', teamBranding);
-app.use('/api/hud-kv', createHudKvRouter());
+const hostedHudDirectory = hosted ? path.resolve("hud-web") : undefined;
+if (hostedHudDirectory) {
+  fs.mkdirSync(hostedHudDirectory, { recursive: true });
+  fs.copyFileSync("template/Scoreboard/assets/HudDefault.png", path.join(hostedHudDirectory, "ScoreboardBackground.png"));
+  fs.copyFileSync("template/Scoreboard/assets/HudReference.png", path.join(hostedHudDirectory, "ScoreboardBackground.original.png"));
+}
+app.use('/api/hud-kv', createHudKvRouter(hostedHudDirectory, hostedHudDirectory));
 app.use('/api/scoreboard-visibility', createScoreboardVisibilityRouter());
 app.use(express.json());
 // Serve static files from src/ui
 const uiPath = path.resolve(process.cwd(), 'src/ui');
+app.get('/api/runtime', (_req, res) => res.json({ hosted }));
 app.use(express.static(uiPath, { index: false }));
 app.use('/overlays', express.static(path.resolve(process.cwd(), 'template')));
 
 // ============ CORS ============
 app.use((req, res, next) => {
+  if (hosted) return next();
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Vary', 'Origin, Access-Control-Request-Headers');
   res.header(
@@ -272,7 +292,8 @@ app.get('/', (req, res) => {
 });
 
 app.post('/create-listener', (req, res) => {
-  const validation = validateCreateListenerPayload(req.body);
+  const validation = validateCreateListenerPayload(hosted && isObjectRecord(req.body)
+    ? { ...req.body, filePath: "debug.log" } : req.body);
 
   if (!validation.ok) {
     return res.status(400).json({
@@ -282,7 +303,7 @@ app.post('/create-listener', (req, res) => {
     });
   }
 
-  if (req.body.requireExistingFile === true) {
+  if (!hosted && req.body.requireExistingFile === true) {
     if (!path.isAbsolute(validation.filePath) || !fs.statSync(validation.filePath, { throwIfNoEntry: false })?.isFile()) {
       return res.status(400).json({ status: 'error', message: 'Không tìm thấy file debug. Hãy dán đường dẫn đầy đủ.' });
     }
@@ -312,8 +333,10 @@ app.post('/create-listener', (req, res) => {
     logger("[Listener]", "Đã dừng listener cũ trước khi tạo mới", "info");
   }
 
+  if (hostedLogPath) fs.writeFileSync(hostedLogPath, "");
   DebuggerObject = new Debugger({
-    filePath: validation.filePath,
+    filePath: hostedLogPath || validation.filePath,
+    shareHttpPort: hosted,
     readExistingLog: req.body.readExistingLog === true,
     matchIDs: selectedMatchIds,
     playerData: playerDataMap,
@@ -332,6 +355,26 @@ app.post('/create-listener', (req, res) => {
     teamNameCount: selectedTeamNames.length
   });
 });
+
+if (hostedLogPath) {
+  const maxLogBytes = 100 * 1024 * 1024;
+  app.post("/live-log", express.raw({ type: "application/octet-stream", limit: "1mb" }), (req, res) => {
+    if (!isListenerRunning || req.get("X-Listener-ID") !== currentListenerID) {
+      return res.status(409).json({ message: "Phiên theo dõi này đã kết thúc." });
+    }
+    const offset = req.get("X-Log-Offset");
+    if (!Buffer.isBuffer(req.body) || !req.body.length || !offset || !/^\d+$/.test(offset)) {
+      return res.status(400).json({ message: "Phần dữ liệu debug không hợp lệ." });
+    }
+    const size = fs.statSync(hostedLogPath).size;
+    if (Number(offset) !== size) return res.status(409).json({ message: "File debug không còn đồng bộ." });
+    if (size + req.body.length > maxLogBytes) {
+      return res.status(413).json({ message: "File debug vượt quá 100 MB. Hãy bắt đầu phiên với file mới." });
+    }
+    fs.appendFileSync(hostedLogPath, req.body);
+    return res.sendStatus(204);
+  });
+}
 
 app.post('/update-listener-matches', async (req, res) => {
   const { listenerID, matchIds, completedLiveMatchId } = req.body ?? {};
@@ -383,6 +426,7 @@ app.post('/stop-listener', (req, res) => {
     DebuggerObject = null;
     currentListenerID = null;
     isListenerRunning = false;
+    if (hostedLogPath) fs.rmSync(hostedLogPath, { force: true });
     return res.json({
       status: 'ok',
       message: 'Đã dừng listener'
@@ -463,6 +507,7 @@ app.post('/kill-listener', (req, res) => {
 
   currentListenerID = null;
   isListenerRunning = false;
+  if (hostedLogPath) fs.rmSync(hostedLogPath, { force: true });
 
   return res.json({
     status: 'ok',
@@ -470,8 +515,18 @@ app.post('/kill-listener', (req, res) => {
   });
 });
 
-app.listen(port, () => {
+const server = app.listen(port, "0.0.0.0", () => {
   console.log(`🚀 Server đang chạy tại http://localhost:${port}`);
   console.log(`📱 Giao diện: http://localhost:${port}`);
   console.log(`📊 API Match Stats: http://localhost:${port}/api/match-stats?matchId=<id>`);
 });
+
+if (hostedAccess) {
+  server.on("upgrade", (req, socket, head) => {
+    const route = /^\/ws\/(\d+)$/.exec(req.url || "");
+    if (!route || !DebuggerObject) return socket.destroy();
+    const channel = Number(route[1]);
+    if (channel === LOG_PORT && !hostedAccess.authorized(req)) return socket.destroy();
+    DebuggerObject.upgradeSocket(channel, req, socket, head);
+  });
+}

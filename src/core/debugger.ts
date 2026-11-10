@@ -1,4 +1,6 @@
 import fs, { StatWatcher } from 'fs';
+import type { IncomingMessage } from 'node:http';
+import type { Duplex } from 'node:stream';
 import { WebSocketServer, WebSocket } from 'ws';
 import matchStats, { type TeamStats } from '../services/Stats';
 import Utils from '../utils';
@@ -136,6 +138,7 @@ function calcWinRate(teamsMap: Map<string, TeamData>): TeamResult[] {
 
 interface DebuggerOptions {
   filePath: string;
+  shareHttpPort?: boolean;
   readExistingLog?: boolean;
   matchIDs: string[];
   playerData: Map<string, PlayerData>;
@@ -214,31 +217,38 @@ export class Debugger {
    * @param filePath Đường dẫn đến file log cần theo dõi.
    * @param playerData Data người chơi
    */
-  constructor({ filePath, readExistingLog = false, matchIDs, playerData, championRushActivePoint, teamNamesFallback, payload }: DebuggerOptions) {
+  constructor({ filePath, shareHttpPort = false, readExistingLog = false, matchIDs, playerData, championRushActivePoint, teamNamesFallback, payload }: DebuggerOptions) {
     this.filePath = filePath;
     this.readExistingLog = readExistingLog;
-    // Server 1
-    this.wss = new WebSocketServer({ port: STANDING_PORT, host: "0.0.0.0" });
+    const createSocket = (port: number) => new WebSocketServer(shareHttpPort
+      ? { noServer: true, maxPayload: 1024 }
+      : { port, host: "0.0.0.0" });
+    this.wss = createSocket(STANDING_PORT);
     this.wss.on("connection", socket => {
       for (const message of this.standingHistory) socket.send(message);
     });
 
-    // Server 2
-    this.eliminatedServer = new WebSocketServer({
-      port: ELIMINATED_PORT,
-      host: "0.0.0.0",
-    });
-
-    // Server 3
-    this.winRateServer = new WebSocketServer({ port: WIN_RATE_PORT, host: "0.0.0.0" });
-
-    this.logSocketServer = new WebSocketServer({ port: LOG_PORT, host: "0.0.0.0" });
+    this.eliminatedServer = createSocket(ELIMINATED_PORT);
+    this.winRateServer = createSocket(WIN_RATE_PORT);
+    this.logSocketServer = createSocket(LOG_PORT);
 
     this.matchIDs = matchIDs;
     this.playerData = playerData;
     this.championRushActivePoint = championRushActivePoint || 0;
     this.teamNamesFallback = teamNamesFallback ?? [];
     this.payload = payload;
+  }
+
+  public upgradeSocket(port: number, request: IncomingMessage, socket: Duplex, head: Buffer) {
+    const servers = {
+      [STANDING_PORT]: this.wss,
+      [ELIMINATED_PORT]: this.eliminatedServer,
+      [WIN_RATE_PORT]: this.winRateServer,
+      [LOG_PORT]: this.logSocketServer,
+    } as Partial<Record<number, WebSocketServer>>;
+    const server = servers[port];
+    if (!server) return socket.destroy();
+    server.handleUpgrade(request, socket, head, client => server.emit("connection", client, request));
   }
 
   public startTailing(): void {

@@ -6,7 +6,9 @@ function connectOverlay(port, { announceReady = true } = {}) {
   let stopped = false;
 
   function connect() {
-    socket = new WebSocket(`ws://${host}:${port}`);
+    const url = location.protocol === "https:" ? `wss://${location.host}/ws/${port}`
+      : `ws://${host}:${port}`;
+    socket = new WebSocket(url);
     socket.addEventListener("message", event => {
       const message = new MessageEvent("message", { data: event.data });
       events.dispatchEvent(message);

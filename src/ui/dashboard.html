@@ -22,7 +22,9 @@
         <div>
           <label for="debug-path">File debug</label>
           <input id="debug-path" type="text" placeholder="Dán đường dẫn đầy đủ đến file .log">
-          <small>Trong File Explorer, dùng Copy as path rồi dán vào đây.</small>
+          <small id="local-debug-help">Trong File Explorer, dùng Copy as path rồi dán vào đây.</small>
+          <button id="pick-debug" type="button" hidden>Chọn file debug</button>
+          <small id="hosted-debug-help" hidden>Dùng Chrome hoặc Edge và giữ tab mở để theo dõi file.</small>
         </div>
         <div>
           <label for="roster">File PlayerName</label>
@@ -46,7 +48,7 @@
     </section>
     <section aria-labelledby="hud-kv-title">
       <h2 id="hud-kv-title">KV cho HUD và Scoreboard Realtime</h2>
-      <p>Chọn thư mục KV hoặc một ảnh. Sau khi áp dụng, HUD trong game và bảng điểm trực tiếp sẽ dùng cùng nền KV.</p>
+      <p id="hud-kv-description">Chọn thư mục KV hoặc một ảnh. Sau khi áp dụng, HUD trong game và bảng điểm trực tiếp sẽ dùng cùng nền KV.</p>
       <div class="inputs">
         <div>
           <label for="hud-kv-folder">Chọn thư mục KV</label>
@@ -101,7 +103,7 @@
               <div>
                 <span class="scoreboard-cpr-label">Icon CPR</span>
                 <div class="cpr-badge"><img src="/overlays/Scoreboard/assets/cpr-crown.png" alt="Vương miện CPR"></div>
-                <small>Nền tự lấy từ HUD_PIC.</small>
+                <small id="cpr-background-source">Nền tự lấy từ HUD_PIC.</small>
               </div>
             </div>
             <div class="row">

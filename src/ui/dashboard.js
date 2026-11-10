@@ -48,6 +48,29 @@ const resizePreviews = new ResizeObserver(entries => {
 overlays.forEach(frame => resizePreviews.observe(frame.parentElement));
 const debugPath = byId("debug-path");
 debugPath.value = saved.debugPath ?? "";
+const { hosted } = await fetch("/api/runtime").then(response => response.json());
+const pickDebug = byId("pick-debug");
+let debugHandle;
+let logUpload;
+if (hosted) {
+  document.body.dataset.hosted = "";
+  debugPath.hidden = byId("local-debug-help").hidden = true;
+  byId("hosted-debug-help").hidden = pickDebug.hidden = false;
+  document.querySelector('label[for="debug-path"]').htmlFor = "pick-debug";
+  byId("hud-kv-description").textContent = "Chọn thư mục KV hoặc một ảnh để thay nền Scoreboard trên web.";
+  byId("hud-kv-apply").textContent = "Áp dụng cho Scoreboard";
+  byId("cpr-background-source").textContent = "Nền tự lấy từ KV của Scoreboard.";
+  if (listenerId) report("Tab đã tải lại. Hãy dừng phiên và chọn lại file debug để tiếp tục.");
+  pickDebug.addEventListener("click", async () => {
+    if (!window.showOpenFilePicker) return report("Hãy mở bảng điều khiển bằng Chrome hoặc Edge để đọc file debug.", true);
+    try {
+      [debugHandle] = await window.showOpenFilePicker();
+      byId("hosted-debug-help").textContent = `Đã chọn ${debugHandle.name}. Giữ tab này mở khi theo dõi.`;
+    } catch (error) {
+      if (error.name !== "AbortError") report(error.message, true);
+    }
+  });
+}
 
 function scoreboardOptions() {
   return {
@@ -133,6 +156,7 @@ function report(message, error = false) {
 function setControls(busy = false) {
   byId("start").disabled = busy || Boolean(listenerId);
   byId("stop").disabled = busy || !listenerId;
+  pickDebug.disabled = busy || Boolean(listenerId);
   byId("add-match").disabled = busy;
   byId("finish-match").disabled = busy;
   byId("finish-match").hidden = !listenerId;
@@ -234,9 +258,9 @@ function writeLog(message) {
 
 function connectLog() {
   const url = new URL(location.href);
-  url.protocol = "ws:";
-  url.port = "11022";
-  url.pathname = "/";
+  url.protocol = location.protocol === "https:" ? "wss:" : "ws:";
+  if (!hosted) url.port = "11022";
+  url.pathname = hosted ? "/ws/11022" : "/";
   url.search = "";
   url.hash = "";
   logSocket = new WebSocket(url);
@@ -245,6 +269,31 @@ function connectLog() {
     writeLog(`[${entry.timestamp}] ${entry.message}`);
     if (entry.source === "standings" && entry.level === "warn") report(entry.message, true);
   });
+}
+
+async function uploadDebug(handle, id, signal) {
+  let offset = 0;
+  const chunkSize = 1024 * 1024;
+  while (!signal.aborted) {
+    const file = await handle.getFile();
+    if (file.size < offset) throw new Error("File debug đã bị ghi lại.");
+    while (offset < file.size && !signal.aborted) {
+      const chunk = file.slice(offset, offset + chunkSize);
+      const response = await fetch("/live-log", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/octet-stream",
+          "X-Listener-ID": id,
+          "X-Log-Offset": String(offset),
+        },
+        body: chunk,
+        signal,
+      });
+      if (!response.ok) throw new Error((await response.json()).message || "Không gửi được dữ liệu debug.");
+      offset += chunk.size;
+    }
+    await new Promise(resolve => setTimeout(resolve, 750));
+  }
 }
 
 byId("roster").addEventListener("change", async event => {
@@ -269,6 +318,7 @@ async function saveMatches(ids, completedLiveMatchId) {
       } catch (error) {
         if (error.status !== 409) throw error;
         setListener(null);
+        logUpload?.abort();
         logSocket?.close();
         if (completedLiveMatchId) throw error;
       }
@@ -300,7 +350,9 @@ byId("match-form").addEventListener("submit", async event => {
 
 byId("start").addEventListener("click", async () => {
   const filePath = debugPath.value.trim().replace(/^"|"$/g, "");
-  if (!filePath) return report("Hãy nhập đường dẫn file debug.", true);
+  if (hosted ? !debugHandle : !filePath) {
+    return report(hosted ? "Hãy chọn file debug." : "Hãy nhập đường dẫn file debug.", true);
+  }
   if (!players.length) return report("Hãy chọn file PlayerName trước khi bắt đầu.", true);
   setControls(true);
   try {
@@ -320,6 +372,13 @@ byId("start").addEventListener("click", async () => {
     await preparePreviews();
     connectLog();
     await post("/start-listener", { listenerID: listenerId });
+    if (hosted) {
+      logUpload = new AbortController();
+      const { signal } = logUpload;
+      void uploadDebug(debugHandle, listenerId, signal).catch(error => {
+        if (!signal.aborted) report(`${error.message} Hãy dừng và bắt đầu lại.`, true);
+      });
+    }
     report("Đang theo dõi file debug.");
     writeLog("Đã bắt đầu theo dõi file debug.");
     persist();
@@ -335,6 +394,7 @@ byId("stop").addEventListener("click", async () => {
   try {
     await post("/kill-listener", { listenerID: listenerId });
     setListener(null);
+    logUpload?.abort();
     logSocket?.close();
     report("Đã dừng theo dõi.");
     writeLog("Đã dừng theo dõi file debug.");

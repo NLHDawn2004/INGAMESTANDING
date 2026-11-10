@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ingamestanding
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 24.21.0
+      - key: SCOREBOARD_PASSWORD
+        generateValue: true
