@@ -100,6 +100,7 @@
       for (const row of ranks.querySelectorAll(".rank-row")) {
         const marker = row.querySelector(".rank-row-rush-status");
         marker.hidden = !Number.isSafeInteger(cpr.threshold) || (teamScores.get(row.id) ?? 0) < cpr.threshold;
+        row.classList.toggle("cpr-active", !marker.hidden);
         if (!marker.hidden) {
           const image = marker.querySelector("img");
           if (image.getAttribute("src") !== cpr.iconUrl) image.src = cpr.iconUrl;
@@ -389,6 +390,9 @@
                 </div>
             </div>
             <img class="rank-row-background" src="./assets/TeamRow.png" alt="">
+            <svg class="row-cpr-outline" viewBox="0 0 360 44" preserveAspectRatio="none" aria-hidden="true">
+              <rect x="1" y="1" width="358" height="42" rx="2" pathLength="100"/>
+            </svg>
             <div class="row-elimination-banner">ELIMINATED</div>
         `;
           applyTeamBranding(name, row.querySelector(".rank-row-data-teamname span"), row.querySelector(".rank-row-data-logo img"));
