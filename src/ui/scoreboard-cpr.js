@@ -37,7 +37,15 @@ form.addEventListener("submit", async event => {
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.message);
-    report(threshold === null ? "Đã tắt CPR." : `Đã áp dụng CPR từ ${threshold} điểm.`);
+    if (!Object.keys(outline).every(name => Number.isFinite(result[name]))) {
+      report("Đã lưu điểm CPR. Hãy khởi động lại TOOLFINAL để áp dụng các chỉnh sửa viền.", true);
+      return;
+    }
+    if (result.outlineColor !== color.value || Object.entries(outline).some(([name, value]) => result[name] !== value)) {
+      throw new Error("Chưa lưu được các chỉnh sửa viền CPR. Hãy thử áp dụng lại.");
+    }
+    report(threshold === null ? "Đã lưu kiểu viền. CPR đang tắt."
+      : `Đã lưu kiểu viền cho các đội đạt từ ${threshold} điểm CPR.`);
   } catch (error) {
     report(error.message || "Không lưu được CPR.", true);
   } finally {
