@@ -232,10 +232,10 @@ img[src$="/PlayerAlive.png"] { filter: url(#scoreboard-alive-yellow); }
 }
 
 .row-cpr-outline rect {
-  stroke: var(--cpr-outline-color, #ffffff);
+  stroke: #ffffff;
   stroke-width: var(--cpr-outline-width, 1.75px);
   vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 var(--cpr-outline-glow, 2px) var(--cpr-outline-color, #ffffff));
+  filter: drop-shadow(0 0 var(--cpr-outline-glow, 2px) #ffffff);
   animation: cpr-border-glow var(--cpr-outline-period, 4s) ease-in-out infinite;
 }
 

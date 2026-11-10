@@ -78,7 +78,6 @@ iframe[hidden] { display: none; }
 #scoreboard-motion-status[data-error] { color: #ffb2b2; }
 .scoreboard-cpr-controls { margin: 12px 0; }
 .scoreboard-cpr-controls h4 { margin: 0 0 8px; }
-.scoreboard-cpr-controls input[type="color"] { height: 40px; padding: 4px; cursor: pointer; }
 .scoreboard-cpr-controls .row { margin-top: 8px; }
 .scoreboard-cpr-label { display: block; font-weight: 600; margin-bottom: 4px; }
 #scoreboard-cpr-status { margin: 4px 0 0; overflow-wrap: anywhere; }

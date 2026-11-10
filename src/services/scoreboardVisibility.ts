@@ -4,14 +4,11 @@ import path from "node:path";
 
 type CprSettings = {
   threshold: number | null;
-  outlineColor: string;
   outlineBrightness: number;
   outlineWidth: number;
   outlineSpeed: number;
 };
 const defaultIcon = "/overlays/Scoreboard/assets/cpr-crown.png";
-const defaultOutlineColor = "#ffffff";
-const hexColor = /^#[0-9a-f]{6}$/i;
 const outlineControls = {
   outlineBrightness: { min: 20, max: 150, defaultValue: 100 },
   outlineWidth: { min: 0.5, max: 5, defaultValue: 1.75 },
@@ -35,11 +32,9 @@ function readCprSettings(file: string): CprSettings {
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") console.warn("Could not load saved CPR settings.");
   }
-  const { threshold, outlineColor, outlineBrightness, outlineWidth, outlineSpeed } = saved ?? {};
+  const { threshold, outlineBrightness, outlineWidth, outlineSpeed } = saved ?? {};
   return {
     threshold: Number.isSafeInteger(threshold) && threshold > 0 ? threshold : null,
-    outlineColor: typeof outlineColor === "string" && hexColor.test(outlineColor)
-      ? outlineColor.toLowerCase() : defaultOutlineColor,
     outlineBrightness: validOutlineValue(outlineBrightness, "outlineBrightness")
       ? outlineBrightness : outlineControls.outlineBrightness.defaultValue,
     outlineWidth: validOutlineValue(outlineWidth, "outlineWidth")
@@ -104,23 +99,18 @@ export function createScoreboardVisibilityRouter(cprFile = path.resolve("scorebo
   router.put("/cpr", express.json({ limit: "1kb" }), (req, res) => {
     if (!sameOrigin(req)) return res.status(403).json({ message: "Hãy chỉnh CPR từ bảng điều khiển." });
     const {
-      threshold, outlineColor = cpr.outlineColor, outlineBrightness = cpr.outlineBrightness,
+      threshold, outlineBrightness = cpr.outlineBrightness,
       outlineWidth = cpr.outlineWidth, outlineSpeed = cpr.outlineSpeed,
     } = req.body ?? {};
     if (threshold !== null && (!Number.isSafeInteger(threshold) || threshold < 1)) {
       return res.status(400).json({ message: "Điểm CPR không hợp lệ." });
-    }
-    if (typeof outlineColor !== "string" || !hexColor.test(outlineColor)) {
-      return res.status(400).json({ message: "Màu vệt sáng CPR không hợp lệ." });
     }
     if (!validOutlineValue(outlineBrightness, "outlineBrightness")
       || !validOutlineValue(outlineWidth, "outlineWidth")
       || !validOutlineValue(outlineSpeed, "outlineSpeed")) {
       return res.status(400).json({ message: "Độ sáng, độ dày hoặc tốc độ viền CPR không hợp lệ." });
     }
-    const next: CprSettings = {
-      threshold, outlineColor: outlineColor.toLowerCase(), outlineBrightness, outlineWidth, outlineSpeed,
-    };
+    const next: CprSettings = { threshold, outlineBrightness, outlineWidth, outlineSpeed };
     try {
       fs.writeFileSync(`${cprFile}.tmp`, JSON.stringify(next));
       fs.renameSync(`${cprFile}.tmp`, cprFile);
