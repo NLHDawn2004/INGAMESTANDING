@@ -234,19 +234,18 @@ img[src$="/PlayerAlive.png"] { filter: url(#scoreboard-alive-yellow); }
 .row-cpr-outline rect {
   stroke: var(--cpr-outline-color, #ffffff);
   stroke-width: 1.75;
-  stroke-linecap: round;
-  stroke-dasharray: 27 73;
   vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 1.5px var(--cpr-outline-color, #ffffff));
-  animation: cpr-border-trace 2s linear infinite;
+  filter: drop-shadow(0 0 2px var(--cpr-outline-color, #ffffff));
+  animation: cpr-border-glow 4s ease-in-out infinite;
 }
 
-@keyframes cpr-border-trace {
-  to { stroke-dashoffset: -100; }
+@keyframes cpr-border-glow {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .row-cpr-outline rect { animation: none; stroke-dasharray: none; }
+  .row-cpr-outline rect { animation: none; opacity: 0.75; }
 }
 
 .row-elimination-banner {
