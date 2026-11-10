@@ -7,8 +7,6 @@
 * { box-sizing: border-box; }
 body { margin: 0; }
 [hidden] { display: none !important; }
-#public-preview details p { margin-top: 8px; }
-#control-link-example { overflow-wrap: anywhere; }
 header, main { max-width: 1240px; margin: auto; padding: 20px; }
 header { padding-bottom: 0; }
 main { display: grid; gap: 16px; }

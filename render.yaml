@@ -11,5 +11,3 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 24.21.0
-      - key: SCOREBOARD_CONTROL_KEY
-        generateValue: true

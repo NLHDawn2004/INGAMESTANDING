@@ -2,7 +2,6 @@ import express from 'express'
 import path from 'path'
 import fs from 'node:fs'
 import os from 'node:os'
-import { createHostedAccess } from './services/hosted';
 import { LOG_PORT } from './constants/port';
 
 import FreeFireMatchStats from './services/Stats';
@@ -18,13 +17,20 @@ configDotenv();
 
 const app = express();
 const hosted = process.env.RENDER === "true" || process.env.SCOREBOARD_HOSTED === "true";
-const hostedAccess = hosted ? createHostedAccess(process.env.SCOREBOARD_CONTROL_KEY || process.env.SCOREBOARD_PASSWORD) : null;
 const port = Number(process.env.PORT || process.env.LOCAL_PORT || 3000);
 const hostedLogDirectory = hosted ? fs.mkdtempSync(path.join(os.tmpdir(), "ff-scoreboard-")) : null;
 const hostedLogPath = hostedLogDirectory && path.join(hostedLogDirectory, "debug.log");
 if (hostedLogDirectory) {
   app.set("trust proxy", 1);
-  app.use(hostedAccess!.protect);
+  app.use((req, res, next) => {
+    const origin = req.get("origin");
+    res.set("X-Content-Type-Options", "nosniff");
+    if (req.method !== "GET" && req.method !== "HEAD"
+      && origin && origin !== `${req.protocol}://${req.get("host")}`) {
+      return res.status(403).json({ message: "Hãy thao tác từ bảng điều khiển." });
+    }
+    next();
+  });
   process.once("exit", () => fs.rmSync(hostedLogDirectory, { recursive: true, force: true }));
 }
 
@@ -213,15 +219,9 @@ app.use('/api/scoreboard-visibility', createScoreboardVisibilityRouter());
 app.use(express.json());
 // Serve static files from src/ui
 const uiPath = path.resolve(process.cwd(), 'src/ui');
-app.get('/api/runtime', (req, res) => res.json({
-  hosted,
-  canControl: !hostedAccess || hostedAccess.authorized(req),
-}));
-if (hostedAccess) {
-  app.get('/control', (_req, res) => {
-    res.set("Referrer-Policy", "no-referrer").sendFile(path.join(uiPath, "control.html"));
-  });
-  app.post('/control', hostedAccess.open);
+app.get('/api/runtime', (_req, res) => res.set("Cache-Control", "no-store").json({ hosted }));
+if (hosted) {
+  app.get('/control', (_req, res) => res.redirect("/#"));
 }
 app.use(express.static(uiPath, { index: false }));
 app.use('/overlays', express.static(path.resolve(process.cwd(), 'template')));
@@ -530,12 +530,14 @@ const server = app.listen(port, "0.0.0.0", () => {
   console.log(`📊 API Match Stats: http://localhost:${port}/api/match-stats?matchId=<id>`);
 });
 
-if (hostedAccess) {
+if (hosted) {
   server.on("upgrade", (req, socket, head) => {
     const route = /^\/ws\/(\d+)$/.exec(req.url || "");
     if (!route || !DebuggerObject) return socket.destroy();
     const channel = Number(route[1]);
-    if (channel === LOG_PORT && !hostedAccess.authorized(req)) return socket.destroy();
+    const protocols = req.headers["sec-websocket-protocol"]?.split(",").map(value => value.trim());
+    if (channel === LOG_PORT && (!currentListenerID || protocols?.[1] !== currentListenerID
+      || protocols[0] !== "ff-live-log")) return socket.destroy();
     DebuggerObject.upgradeSocket(channel, req, socket, head);
   });
 }
