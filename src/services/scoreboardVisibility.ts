@@ -2,10 +2,26 @@ import express, { type Request, type Response } from "express";
 import fs from "node:fs";
 import path from "node:path";
 
-type CprSettings = { threshold: number | null; outlineColor: string };
+type CprSettings = {
+  threshold: number | null;
+  outlineColor: string;
+  outlineBrightness: number;
+  outlineWidth: number;
+  outlineSpeed: number;
+};
 const defaultIcon = "/overlays/Scoreboard/assets/cpr-crown.png";
 const defaultOutlineColor = "#ffffff";
 const hexColor = /^#[0-9a-f]{6}$/i;
+const outlineControls = {
+  outlineBrightness: { min: 20, max: 150, defaultValue: 100 },
+  outlineWidth: { min: 0.5, max: 5, defaultValue: 1.75 },
+  outlineSpeed: { min: 0.5, max: 2, defaultValue: 1 },
+} as const;
+
+function validOutlineValue(value: unknown, key: keyof typeof outlineControls): value is number {
+  const { min, max } = outlineControls[key];
+  return typeof value === "number" && Number.isFinite(value) && value >= min && value <= max;
+}
 
 function sameOrigin(req: Request) {
   const origin = req.get("origin");
@@ -13,17 +29,24 @@ function sameOrigin(req: Request) {
 }
 
 function readCprSettings(file: string): CprSettings {
+  let saved;
   try {
-    const saved = JSON.parse(fs.readFileSync(file, "utf8"));
-    return {
-      threshold: Number.isSafeInteger(saved?.threshold) && saved.threshold > 0 ? saved.threshold : null,
-      outlineColor: typeof saved?.outlineColor === "string" && hexColor.test(saved.outlineColor)
-        ? saved.outlineColor.toLowerCase() : defaultOutlineColor,
-    };
+    saved = JSON.parse(fs.readFileSync(file, "utf8"));
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") console.warn("Could not load saved CPR settings.");
-    return { threshold: null, outlineColor: defaultOutlineColor };
   }
+  const { threshold, outlineColor, outlineBrightness, outlineWidth, outlineSpeed } = saved ?? {};
+  return {
+    threshold: Number.isSafeInteger(threshold) && threshold > 0 ? threshold : null,
+    outlineColor: typeof outlineColor === "string" && hexColor.test(outlineColor)
+      ? outlineColor.toLowerCase() : defaultOutlineColor,
+    outlineBrightness: validOutlineValue(outlineBrightness, "outlineBrightness")
+      ? outlineBrightness : outlineControls.outlineBrightness.defaultValue,
+    outlineWidth: validOutlineValue(outlineWidth, "outlineWidth")
+      ? outlineWidth : outlineControls.outlineWidth.defaultValue,
+    outlineSpeed: validOutlineValue(outlineSpeed, "outlineSpeed")
+      ? outlineSpeed : outlineControls.outlineSpeed.defaultValue,
+  };
 }
 
 export function createScoreboardVisibilityRouter(cprFile = path.resolve("scoreboard-cpr.json")) {
@@ -80,14 +103,24 @@ export function createScoreboardVisibilityRouter(cprFile = path.resolve("scorebo
   router.get("/cpr", (_req, res) => res.set("Cache-Control", "no-store").json(publicCpr()));
   router.put("/cpr", express.json({ limit: "1kb" }), (req, res) => {
     if (!sameOrigin(req)) return res.status(403).json({ message: "Hãy chỉnh CPR từ bảng điều khiển." });
-    const { threshold, outlineColor = cpr.outlineColor } = req.body ?? {};
+    const {
+      threshold, outlineColor = cpr.outlineColor, outlineBrightness = cpr.outlineBrightness,
+      outlineWidth = cpr.outlineWidth, outlineSpeed = cpr.outlineSpeed,
+    } = req.body ?? {};
     if (threshold !== null && (!Number.isSafeInteger(threshold) || threshold < 1)) {
       return res.status(400).json({ message: "Điểm CPR không hợp lệ." });
     }
     if (typeof outlineColor !== "string" || !hexColor.test(outlineColor)) {
       return res.status(400).json({ message: "Màu vệt sáng CPR không hợp lệ." });
     }
-    const next: CprSettings = { threshold, outlineColor: outlineColor.toLowerCase() };
+    if (!validOutlineValue(outlineBrightness, "outlineBrightness")
+      || !validOutlineValue(outlineWidth, "outlineWidth")
+      || !validOutlineValue(outlineSpeed, "outlineSpeed")) {
+      return res.status(400).json({ message: "Độ sáng, độ dày hoặc tốc độ viền CPR không hợp lệ." });
+    }
+    const next: CprSettings = {
+      threshold, outlineColor: outlineColor.toLowerCase(), outlineBrightness, outlineWidth, outlineSpeed,
+    };
     try {
       fs.writeFileSync(`${cprFile}.tmp`, JSON.stringify(next));
       fs.renameSync(`${cprFile}.tmp`, cprFile);

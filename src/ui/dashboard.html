@@ -110,6 +110,23 @@
                 <small id="cpr-background-source">Nền tự lấy từ HUD_PIC.</small>
               </div>
             </div>
+            <div class="scoreboard-dimensions">
+              <div>
+                <label for="scoreboard-cpr-brightness">Độ sáng</label>
+                <input id="scoreboard-cpr-brightness" name="outlineBrightness" type="range" min="20" max="150" step="5" value="100" data-unit="%">
+                <output for="scoreboard-cpr-brightness">100%</output>
+              </div>
+              <div>
+                <label for="scoreboard-cpr-width">Độ dày</label>
+                <input id="scoreboard-cpr-width" name="outlineWidth" type="range" min="0.5" max="5" step="0.25" value="1.75" data-unit=" px">
+                <output for="scoreboard-cpr-width">1.75 px</output>
+              </div>
+              <div>
+                <label for="scoreboard-cpr-speed">Tốc độ</label>
+                <input id="scoreboard-cpr-speed" name="outlineSpeed" type="range" min="0.5" max="2" step="0.25" value="1" data-unit="×">
+                <output for="scoreboard-cpr-speed">1×</output>
+              </div>
+            </div>
             <div class="row">
               <button id="scoreboard-cpr-save" type="submit">Áp dụng CPR</button>
             </div>

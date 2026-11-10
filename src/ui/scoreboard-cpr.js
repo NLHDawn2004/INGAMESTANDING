@@ -4,8 +4,21 @@ const points = document.getElementById("scoreboard-cpr-points");
 const color = document.getElementById("scoreboard-cpr-color");
 const button = document.getElementById("scoreboard-cpr-save");
 const status = document.getElementById("scoreboard-cpr-status");
+const sliders = [...form.querySelectorAll('input[type="range"]')];
+const changedSliders = new Set();
 let colorEdited = false;
 color.addEventListener("input", () => { colorEdited = true; });
+
+function showSliderValue(slider) {
+  slider.parentElement.querySelector("output").value = slider.value + slider.dataset.unit;
+}
+
+for (const slider of sliders) {
+  slider.addEventListener("input", () => {
+    changedSliders.add(slider);
+    showSliderValue(slider);
+  });
+}
 
 function report(message, error = false) {
   status.textContent = message;
@@ -15,11 +28,12 @@ function report(message, error = false) {
 form.addEventListener("submit", async event => {
   event.preventDefault();
   const threshold = points.value ? Number(points.value) : null;
+  const outline = Object.fromEntries(sliders.map(slider => [slider.name, slider.valueAsNumber]));
   button.disabled = true;
   try {
     const response = await fetch(endpoint, {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ threshold, outlineColor: color.value }),
+      body: JSON.stringify({ threshold, outlineColor: color.value, ...outline }),
     });
     const result = await response.json();
     if (!response.ok) throw new Error(result.message);
@@ -36,4 +50,10 @@ fetch(endpoint).then(async response => {
   const result = await response.json();
   if (!points.value) points.value = result.threshold ?? "";
   if (!colorEdited) color.value = result.outlineColor ?? "#ffffff";
+  for (const slider of sliders) {
+    if (!changedSliders.has(slider) && Number.isFinite(result[slider.name])) {
+      slider.valueAsNumber = result[slider.name];
+      showSliderValue(slider);
+    }
+  }
 }).catch(error => report(error.message, true));

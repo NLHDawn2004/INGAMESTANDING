@@ -94,6 +94,11 @@
     function updateCpr(settings) {
       cpr = settings;
       ranks.style.setProperty("--cpr-outline-color", settings.outlineColor || "#ffffff");
+      const brightness = (settings.outlineBrightness ?? 100) / 100;
+      ranks.style.setProperty("--cpr-outline-opacity", Math.min(brightness, 1));
+      ranks.style.setProperty("--cpr-outline-glow", `${brightness * 2}px`);
+      ranks.style.setProperty("--cpr-outline-width", `${settings.outlineWidth ?? 1.75}px`);
+      ranks.style.setProperty("--cpr-outline-period", `${4 / (settings.outlineSpeed ?? 1)}s`);
       paintCpr();
     }
 

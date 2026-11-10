@@ -233,19 +233,19 @@ img[src$="/PlayerAlive.png"] { filter: url(#scoreboard-alive-yellow); }
 
 .row-cpr-outline rect {
   stroke: var(--cpr-outline-color, #ffffff);
-  stroke-width: 1.75;
+  stroke-width: var(--cpr-outline-width, 1.75px);
   vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 2px var(--cpr-outline-color, #ffffff));
-  animation: cpr-border-glow 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 var(--cpr-outline-glow, 2px) var(--cpr-outline-color, #ffffff));
+  animation: cpr-border-glow var(--cpr-outline-period, 4s) ease-in-out infinite;
 }
 
 @keyframes cpr-border-glow {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: calc(var(--cpr-outline-opacity, 1) * 0.45); }
+  50% { opacity: var(--cpr-outline-opacity, 1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .row-cpr-outline rect { animation: none; opacity: 0.75; }
+  .row-cpr-outline rect { animation: none; opacity: calc(var(--cpr-outline-opacity, 1) * 0.75); }
 }
 
 .row-elimination-banner {
