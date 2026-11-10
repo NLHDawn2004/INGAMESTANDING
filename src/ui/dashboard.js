@@ -48,11 +48,19 @@ const resizePreviews = new ResizeObserver(entries => {
 overlays.forEach(frame => resizePreviews.observe(frame.parentElement));
 const debugPath = byId("debug-path");
 debugPath.value = saved.debugPath ?? "";
-const { hosted } = await fetch("/api/runtime").then(response => response.json());
+const { hosted, canControl } = await fetch("/api/runtime").then(response => response.json());
+if (canControl) {
+  void import("./hud-kv.js");
+  void import("./scoreboard-cpr.js");
+} else {
+  document.querySelectorAll("[data-control-only]").forEach(element => { element.hidden = true; });
+  byId("public-preview").hidden = false;
+  byId("control-link-example").textContent = new URL("/control#", location.origin).href;
+}
 const pickDebug = byId("pick-debug");
 let debugHandle;
 let logUpload;
-if (hosted) {
+if (hosted && canControl) {
   document.body.dataset.hosted = "";
   debugPath.hidden = byId("local-debug-help").hidden = true;
   byId("hosted-debug-help").hidden = pickDebug.hidden = false;
@@ -82,7 +90,7 @@ function scoreboardOptions() {
 function scoreboardUrl(preview = false) {
   const url = new URL("/overlays/Scoreboard/", location.origin);
   const { width, height } = scoreboardOptions();
-  if (preview) url.searchParams.set("edit", "1");
+  if (preview && canControl) url.searchParams.set("edit", "1");
   if (width) url.searchParams.set("width", String(width));
   if (height) url.searchParams.set("height", String(height));
   return url;
@@ -412,10 +420,14 @@ management.parentElement.addEventListener("toggle", () => {
   if (management.parentElement.open && !management.getAttribute("src")) management.src = "/index.html";
 });
 window.addEventListener("ff-open-match", event => showMatch(event.detail));
-renderRoster();
-renderMatches();
-setControls();
-if (listenerId) {
+if (canControl) {
+  renderRoster();
+  renderMatches();
+  setControls();
+}
+if (!canControl) {
+  loadPreviews();
+} else if (listenerId) {
   loadPreviews();
   connectLog();
 } else {

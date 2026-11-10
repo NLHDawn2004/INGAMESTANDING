@@ -14,6 +14,10 @@ export function createHostedAccess(key: string | undefined) {
   const session = digest(`scoreboard-session:${key}`).toString("hex");
   const expectedSession = digest(session);
   const cookieName = "__Host-scoreboard-control";
+  const previewAssets = new Set([
+    "/dashboard.css", "/dashboard.js", "/dashboard-data.mjs",
+    "/scoreboard-size.mjs", "/team-branding.js",
+  ]);
 
   function authorized(req: IncomingMessage) {
     const cookie = req.headers.cookie?.split(";").map(value => value.trim())
@@ -24,7 +28,8 @@ export function createHostedAccess(key: string | undefined) {
   const protect: RequestHandler = (req, res, next) => {
     const origin = req.get("origin");
     const reading = req.method === "GET" || req.method === "HEAD";
-    const publicPath = req.path === "/api/health" || req.path.startsWith("/overlays/")
+    const publicPath = previewAssets.has(req.path)
+      || req.path === "/api/health" || req.path.startsWith("/overlays/")
       || /^\/api\/team-branding(?:\/logo\/[^/]+)?$/.test(req.path)
       || /^\/api\/hud-kv\/(active|cpr-background)$/.test(req.path)
       || /^\/api\/scoreboard-visibility\/(events|cpr)$/.test(req.path);
@@ -35,7 +40,7 @@ export function createHostedAccess(key: string | undefined) {
     if (!reading && origin && origin !== `${req.protocol}://${req.get("host")}`) {
       return res.status(403).json({ message: "Hãy thao tác từ bảng điều khiển." });
     }
-    if (reading && (req.path === "/" || req.path === "/control" || req.path === "/control.js")) return next();
+    if (reading && ["/", "/api/runtime", "/control", "/control.js"].includes(req.path)) return next();
     if (req.method === "POST" && req.path === "/control") return next();
     if (!authorized(req)) {
       return res.status(403).json({ message: "Hãy mở link điều khiển riêng." });

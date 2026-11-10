@@ -7,8 +7,6 @@
   <link rel="stylesheet" href="/dashboard.css">
   <link rel="stylesheet" href="/overlays/Scoreboard/cpr.css">
   <script type="module" src="/dashboard.js"></script>
-  <script type="module" src="/hud-kv.js"></script>
-  <script type="module" src="/scoreboard-cpr.js"></script>
 </head>
 <body>
   <header>
@@ -16,7 +14,16 @@
     <p>Bảng điều khiển trận đấu</p>
   </header>
   <main>
-    <section aria-labelledby="setup-title">
+    <section id="public-preview" aria-labelledby="public-preview-title" hidden>
+      <h2 id="public-preview-title">Xem bảng điểm trực tiếp</h2>
+      <p>Bạn có thể xem bảng điểm và sao chép link OBS tại đây.</p>
+      <details>
+        <summary>Cách mở bảng điều khiển</summary>
+        <p>Sao chép giá trị <code>SCOREBOARD_CONTROL_KEY</code> trong mục <strong>Environment</strong> của dịch vụ Render. Dán giá trị đó ngay sau dấu <code>#</code> trong địa chỉ dưới đây rồi mở bằng Chrome hoặc Edge.</p>
+        <code id="control-link-example"></code>
+      </details>
+    </section>
+    <section aria-labelledby="setup-title" data-control-only>
       <h2 id="setup-title">Dữ liệu ngày thi đấu</h2>
       <div class="inputs">
         <div>
@@ -46,7 +53,7 @@
         <button id="stop" disabled>Dừng theo dõi</button>
       </div>
     </section>
-    <section aria-labelledby="hud-kv-title">
+    <section aria-labelledby="hud-kv-title" data-control-only>
       <h2 id="hud-kv-title">KV cho HUD và Scoreboard Realtime</h2>
       <p id="hud-kv-description">Chọn thư mục KV hoặc một ảnh. Sau khi áp dụng, HUD trong game và bảng điểm trực tiếp sẽ dùng cùng nền KV.</p>
       <div class="inputs">
@@ -72,7 +79,7 @@
       <p id="hud-kv-status" role="status">Chọn KV để xem thử. File gốc sẽ được sao lưu trước khi thay.</p>
       <button id="hud-kv-apply" type="button" class="primary" disabled>Áp dụng cho HUD và Scoreboard</button>
     </section>
-    <section aria-labelledby="matches-title">
+    <section aria-labelledby="matches-title" data-control-only>
       <h2 id="matches-title">Trận đã hoàn tất</h2>
       <p>Dùng <strong>Thêm trận</strong> cho trận trước. Khi trận đang hiển thị kết thúc, dùng <strong>Chốt trận đang hiển thị</strong> để thay điểm live bằng kết quả chính thức.</p>
       <ul id="matches"></ul>
@@ -80,19 +87,19 @@
     </section>
     <section aria-labelledby="live-title">
       <h2 id="live-title">Theo dõi trực tiếp</h2>
-      <details>
+      <details data-control-only>
         <summary>Nhật ký hoạt động</summary>
         <pre id="terminal">Chưa có phiên theo dõi.</pre>
       </details>
       <div class="scoreboard-controls">
         <article>
           <h3>Scoreboard</h3>
-          <div class="row scoreboard-motion-controls">
+          <div class="row scoreboard-motion-controls" data-control-only>
             <button id="scoreboard-show" type="button" class="primary">CHẠY BẢNG ĐIỂM</button>
             <button id="scoreboard-hide" type="button">TẮT BẢNG ĐIỂM</button>
             <p id="scoreboard-motion-status" role="status"></p>
           </div>
-          <form id="scoreboard-cpr-form" class="scoreboard-cpr-controls">
+          <form id="scoreboard-cpr-form" class="scoreboard-cpr-controls" data-control-only>
             <h4>Chế độ CPR</h4>
             <div class="scoreboard-dimensions">
               <div>
@@ -111,7 +118,7 @@
             </div>
             <p id="scoreboard-cpr-status" role="status"></p>
           </form>
-          <div class="preview-viewport scoreboard-viewport"><iframe data-overlay="Scoreboard" data-preview-width="404" title="Scoreboard có thể chọn đội"></iframe></div>
+          <div class="preview-viewport scoreboard-viewport"><iframe data-overlay="Scoreboard" data-preview-width="404" title="Xem trước Scoreboard"></iframe></div>
           <div class="scoreboard-size-controls">
             <div class="scoreboard-dimensions">
               <div>
@@ -132,7 +139,7 @@
             <p id="scoreboard-copy-status" role="status"></p>
           </div>
         </article>
-        <article aria-labelledby="branding-title">
+        <article aria-labelledby="branding-title" data-control-only>
           <h3 id="branding-title">Chỉnh tên và logo đội</h3>
           <div class="branding-bulk">
             <label for="branding-bulk-upload">Thêm logo hàng loạt theo tên file</label>
@@ -157,7 +164,7 @@
         </article>
       </div>
     </section>
-    <details>
+    <details data-control-only>
       <summary>Quản lý Group, người chơi và CSV</summary>
       <iframe id="management" title="Quản lý dữ liệu giải"></iframe>
     </details>

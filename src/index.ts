@@ -213,7 +213,10 @@ app.use('/api/scoreboard-visibility', createScoreboardVisibilityRouter());
 app.use(express.json());
 // Serve static files from src/ui
 const uiPath = path.resolve(process.cwd(), 'src/ui');
-app.get('/api/runtime', (_req, res) => res.json({ hosted }));
+app.get('/api/runtime', (req, res) => res.json({
+  hosted,
+  canControl: !hostedAccess || hostedAccess.authorized(req),
+}));
 if (hostedAccess) {
   app.get('/control', (_req, res) => {
     res.set("Referrer-Policy", "no-referrer").sendFile(path.join(uiPath, "control.html"));
@@ -294,9 +297,7 @@ app.get('/api/health', (req, res) => {
  * Serve UI (index.html)
  */
 app.get('/', (req, res) => {
-  const showControlLinkPage = hostedAccess && !hostedAccess.authorized(req);
-  if (showControlLinkPage) res.set("Referrer-Policy", "no-referrer");
-  res.sendFile(path.join(uiPath, showControlLinkPage ? "control.html" : "dashboard.html"));
+  res.sendFile(path.join(uiPath, "dashboard.html"));
 });
 
 app.post('/create-listener', (req, res) => {
