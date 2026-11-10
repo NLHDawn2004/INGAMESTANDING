@@ -1,0 +1,22 @@
+{
+  "Enhance Hammer": {
+    "skillName":"Cường hóa vũ khí",
+    "skillTitle":"Enhance Hammer",
+    "skillImage": "assets/loadout/Enhance%20Hammer.png"
+  },
+  "Super Leg Pockets": {
+    "skillName":"Túi vật phẩm siêu cấp",
+    "skillTitle":"Super Leg Pockets",
+    "skillImage": "assets/loadout/Super%20Leg%20Pockets.png"
+  },
+  "Tactical Market": {
+    "skillName":"Cửa hàng chiến thuật",
+    "skillTitle":"Tactical Market",
+    "skillImage": "assets/loadout/Tactical%20Market.png"
+  },
+  "Team Booster": {
+    "skillName":"Tăng cường đồng đội",
+    "skillTitle":"Team Booster",
+    "skillImage": "assets/loadout/Team%20Booster.png"
+  }
+}

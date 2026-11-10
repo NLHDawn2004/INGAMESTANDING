@@ -1,0 +1,19 @@
+.cpr-badge {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  background-color: #252832;
+  background-image: linear-gradient(rgb(0 0 0 / 42%), rgb(0 0 0 / 42%)),
+    var(--cpr-badge-image, url("/api/hud-kv/cpr-background"));
+  background-position: center, left -9px;
+  background-repeat: no-repeat;
+}
+
+.cpr-badge img {
+  width: 32px;
+  height: 25px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px #000);
+}

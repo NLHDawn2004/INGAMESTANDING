@@ -1,0 +1,104 @@
+{
+  "Agent Hop": {
+    "skillImage": "assets/pets/Agent%20Hop.png",
+    "skillTitle": "Agent Hop",
+    "skillName": "Agent Hop",
+    "characterImage": ""
+  },
+  "Arvon": {
+    "skillImage": "assets/pets/Arvon.png",
+    "skillTitle": "Arvon",
+    "skillName": "Dinoculars",
+    "characterImage": ""
+  },
+  "Beaston": {
+    "skillImage": "assets/pets/Beaston.png",
+    "skillTitle": "Beaston",
+    "skillName": "Helping Hand",
+    "characterImage": ""
+  },
+  "Dective Panda": {
+    "skillImage": "assets/pets/Dective%20Panda.png",
+    "skillTitle": "Dective Panda",
+    "skillName": "Dective Panda",
+    "characterImage": ""
+  },
+  "Dreki": {
+    "skillImage": "assets/pets/Dreki.png",
+    "skillTitle": "Dreki",
+    "skillName": "Dragon Glare",
+    "characterImage": ""
+  },
+  "Falco": {
+    "skillImage": "assets/pets/Falco.png",
+    "skillTitle": "Falco",
+    "skillName": "Skyline Spree",
+    "characterImage": ""
+  },
+  "Fang": {
+    "skillImage": "assets/pets/Fang.png",
+    "skillTitle": "Fang",
+    "skillName": "Fang",
+    "characterImage": ""
+  },
+  "Finn": {
+    "skillImage": "assets/pets/Finn.png",
+    "skillTitle": "Finn",
+    "skillName": "Finn",
+    "characterImage": ""
+  },
+  "Flash": {
+    "skillImage": "assets/pets/Flash.png",
+    "skillTitle": "Flash",
+    "skillName": "Flash",
+    "characterImage": ""
+  },
+  "Moony": {
+    "skillImage": "assets/pets/Moony.png",
+    "skillTitle": "Moony",
+    "skillName": "Moony",
+    "characterImage": ""
+  },
+  "Night Panther": {
+    "skillImage": "assets/pets/Night%20Panther.png",
+    "skillTitle": "Night Panther",
+    "skillName": "Night Panther",
+    "characterImage": ""
+  },
+  "Ottero": {
+    "skillImage": "assets/pets/Ottero.png",
+    "skillTitle": "Ottero",
+    "skillName": "Ottero",
+    "characterImage": ""
+  },
+  "Robo": {
+    "skillImage": "assets/pets/Robo.png",
+    "skillTitle": "Robo",
+    "skillName": "Robo",
+    "characterImage": ""
+  },
+  "Rockie": {
+    "skillImage": "assets/pets/Rockie.png",
+    "skillTitle": "Rockie",
+    "skillName": "Stay Chill",
+    "characterImage": ""
+  },
+  "Spirit Fox": {
+    "skillImage": "assets/pets/Spirit%20Fox.png",
+    "skillTitle": "Spirit Fox",
+    "skillName": "Spirit Fox",
+    "characterImage": ""
+  },
+  "Yeti": {
+    "skillImage": "assets/pets/Yeti.png",
+    "skillTitle": "Yeti",
+    "skillName": "Yeti",
+    "characterImage": ""
+  },
+  "Zasil": {
+    "skillImage": "assets/pets/Zasil.png",
+    "skillTitle": "Zasil",
+    "skillName": "Zasil",
+    "characterImage": ""
+  }
+}

@@ -1,0 +1,250 @@
+@font-face {
+  font-family: GFF_LATIN_BOLD;
+  src: url('./assets/fonts/GFF-LATIN-BOLD.woff2') format("WOFF");
+}
+
+@font-face {
+  font-family: GFF_LATIN_EXTRABOLD;
+  src: url('./assets/fonts/GFF-LATIN-EXTRABOLD.woff2') format("WOFF");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }
+
+body {
+  position: relative;
+}
+
+.container {
+  width: 360px;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%) scale(var(--scoreboard-scale, 1));
+  transform-origin: right center;
+}
+
+.scoreboard-motion-hidden { visibility: hidden; pointer-events: none; }
+
+.top-item {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  background: linear-gradient(105deg, #ffb600, #ff217f);
+  color: white;
+  font: italic 14px GFF_LATIN_EXTRABOLD, sans-serif;
+}
+
+.header-team {
+  width: 189px;
+  padding-left: 72px;
+}
+
+.rank-row-background {
+  display: block;
+  width: 100%;
+  height: 44px;
+}
+
+.scoreboard-filters { position: absolute; }
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  height: 30px;
+  background: linear-gradient(100deg, #5b0031, #a0004a);
+  color: white;
+  font: italic 13px GFF_LATIN_EXTRABOLD, sans-serif;
+}
+
+.footer span { display: flex; align-items: center; gap: 4px; }
+.footer img { height: 23px; }
+
+img[src$="/PlayerAlive.png"] { filter: url(#scoreboard-alive-yellow); }
+
+.scoreboard-has-kv .top-item { background: var(--kv-header); color: var(--kv-header-ink); }
+.scoreboard-has-kv .rank-row-data-title { color: var(--kv-rank-ink); }
+.scoreboard-has-kv .rank-row-data-teamname { text-shadow: 0 1px 2px #000, 0 0 4px #000; }
+.scoreboard-has-kv .footer { background: #252525; }
+
+.ranks {
+  display: grid;
+  row-gap: 4px;
+}
+
+.rank-row {
+  position: relative;
+  transition: transform 0.5s ease, opacity 0.3s ease;
+}
+
+.scoreboard-edit-target {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  color: inherit;
+  font: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+.scoreboard-edit-target[hidden] { display: none; }
+.scoreboard-edit-target:hover,
+.scoreboard-edit-target:focus-visible { outline: 1px solid white; outline-offset: -1px; }
+
+.scoreboard-name-input {
+  position: absolute;
+  z-index: 1;
+  width: 160px;
+  max-width: 100%;
+  padding: 5px 6px;
+  color: white;
+  background: #172132;
+  border: 1px solid white;
+  border-radius: 4px;
+  font: 14px sans-serif;
+}
+
+.rank-row-data {
+  position: absolute;
+  display: flex;
+  height: 43px;
+}
+
+.rank-row-data-title {
+  width: 59px;
+  height: 42px;
+  color: black;
+  font-size: 14pt;
+  font-family: GFF_LATIN_EXTRABOLD;
+  /* font-style: italic; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rank-row-data-logo {
+  margin-left: 12px;
+  /* background-color: green; */
+  width: 43px;
+  height: 43px;
+}
+
+.rank-row-data-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.rank-row-data-teamname {
+  color: white;
+  width: 70px;
+  font-family: GFF_LATIN_EXTRABOLD;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  margin-left: 5px;
+  font-size: 14pt;
+  /* background-color: green; */
+}
+
+.rank-row-data-teamname span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rank-row-data-points,
+.rank-row-data-elims {
+  color: white;
+  font-family: GFF_LATIN_BOLD;
+  font-style: italic;
+  width: 50px;
+  height: 100%;
+  /* background-color: red; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rank-row-data-elims { width: 44px; }
+
+.rank-row-data-alive {
+  width: 68px;
+  height: 100%;
+  /* background-color: aqua; */
+  margin-left: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.rank-row-data-alive img {
+  height: 65%;
+}
+
+.eliminated {}
+
+.rank-row.wiped:not(.elimination-active) {
+  filter: grayscale(1);
+  opacity: 0.9;
+}
+
+.row-elimination-banner {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  place-items: center;
+  pointer-events: none;
+  color: #241806;
+  background:
+    linear-gradient(112deg, transparent 18%, rgb(255 255 255 / 37%) 46%, transparent 68%),
+    linear-gradient(#ffdb65, #edac27);
+  border-block: 1px solid #ffdf85;
+  font: 22px GFF_LATIN_EXTRABOLD, sans-serif;
+  letter-spacing: 0.21em;
+}
+
+.elimination-active .row-elimination-banner {
+  display: grid;
+  animation: elimination-banner 3400ms ease-out var(--elimination-delay, 0ms) both;
+}
+
+@keyframes elimination-banner {
+  0% { clip-path: inset(0 100% 0 0); opacity: 0.55; }
+  9%, 91% { clip-path: inset(0); opacity: 1; }
+  100% { clip-path: inset(0); opacity: 0; }
+}
+
+/* Container của icon Rush */
+.rank-row-rush-status {
+  position: absolute;
+  left: -44px;
+  /* Nằm ngoài hàng về bên trái */
+  top: 2px;
+  transition: filter 0.5s ease;
+}
+
+.rank-row-rush-status[hidden] { display: none; }
+
+/* Khi team bị wiped, làm tối cả hàng và icon rush */
+.rank-row.wiped .rank-row-rush-status {
+  filter: grayscale(1) brightness(0.5);
+}

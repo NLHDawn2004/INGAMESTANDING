@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chi Tiết Trận Đấu</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+
+    .header-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px 20px;
+      margin-bottom: 30px;
+      border-radius: 10px;
+    }
+
+    .match-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .info-card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-card label {
+      font-size: 0.85rem;
+      color: #666;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .info-card .value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #667eea;
+      margin-top: 5px;
+    }
+
+    .rank-badge {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 50%;
+      font-weight: bold;
+      text-align: center;
+      min-width: 40px;
+      color: white;
+    }
+
+    .rank-1 {
+      background: #FFD700;
+      color: #333;
+    }
+
+    .rank-2 {
+      background: #C0C0C0;
+      color: #333;
+    }
+
+    .rank-3 {
+      background: #CD7F32;
+    }
+
+    .rank-other {
+      background: #667eea;
+    }
+
+    .stats-table {
+      font-size: 0.9rem;
+    }
+
+    .stats-table th {
+      background: #667eea;
+      color: white;
+      font-weight: 600;
+      padding: 10px;
+    }
+
+    .stats-table td {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .stats-table tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    .team-section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border-top: 4px solid #667eea;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .team-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .team-name {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .team-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .stat-item {
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .stat-item .label {
+      font-size: 0.75rem;
+      color: #666;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .stat-item .value {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #667eea;
+      margin-top: 3px;
+    }
+
+    .player-list {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 2px solid #eee;
+    }
+
+    .player-item {
+      padding: 10px;
+      background: #f8f9fa;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      border-left: 3px solid #764ba2;
+    }
+
+    .player-name {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .player-id {
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    .back-btn {
+      margin-bottom: 20px;
+    }
+
+    .btn-custom {
+      background: #667eea;
+      border: none;
+    }
+
+    .btn-custom:hover {
+      background: #764ba2;
+      color: white;
+    }
+
+    .tabs-container {
+      margin-top: 20px;
+    }
+
+    .nav-tabs .nav-link {
+      color: #666;
+      border: none;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .nav-tabs .nav-link.active {
+      background: none;
+      border-color: #667eea;
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .nav-tabs .nav-link:hover {
+      border-color: #667eea;
+      color: #667eea;
+    }
+
+    .loading-spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 300px;
+    }
+
+    .error-box {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 20px 0;
+    }
+
+    .players-table-panel {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border: 1px solid #ecefff;
+      overflow: hidden;
+    }
+
+    .players-table-scroll {
+      max-height: 70vh;
+      overflow: auto;
+      position: relative;
+      -webkit-overflow-scrolling: touch;
+      background: #eef1ff;
+    }
+
+    .players-table {
+      margin-bottom: 0;
+      margin-top: 0;
+      min-width: 1400px;
+      font-size: 0.86rem;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .players-table thead th {
+      position: sticky;
+      top: -1px;
+      z-index: 3;
+      background: #eef1ff;
+      color: #3b4270;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      border-bottom: 1px solid #d9defa;
+      box-shadow: inset 0 -1px 0 #d9defa;
+    }
+
+    .players-table td,
+    .players-table th {
+      padding: 8px 10px;
+      vertical-align: middle;
+      white-space: nowrap;
+      border-color: #eceef8;
+    }
+
+    .players-table td {
+      max-width: 340px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .players-table .sticky-col-1 {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: #f8f9ff;
+      min-width: 58px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .players-table .sticky-col-2 {
+      position: sticky;
+      left: 58px;
+      z-index: 2;
+      background: #f8f9ff;
+      min-width: 180px;
+      font-weight: 600;
+    }
+
+    .players-table .sticky-col-3 {
+      position: sticky;
+      left: 238px;
+      z-index: 2;
+      background: #f8f9ff;
+      min-width: 120px;
+    }
+
+    .players-table .sticky-col-4 {
+      position: sticky;
+      left: 358px;
+      z-index: 2;
+      background: #f8f9ff;
+      min-width: 150px;
+    }
+
+    .players-table .sticky-col-action {
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      background: #f8f9ff;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .players-table thead .sticky-col-1,
+    .players-table thead .sticky-col-2,
+    .players-table thead .sticky-col-3,
+    .players-table thead .sticky-col-4,
+    .players-table thead .sticky-col-action {
+      z-index: 6;
+      background: #eef1ff;
+    }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .skill-card {
+      border: 1px solid #ececff;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .skill-card img {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: #f3f5ff;
+      border: 1px solid #e8ebff;
+    }
+
+    .skill-avatar-placeholder {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      background: #f3f5ff;
+      border: 1px solid #e8ebff;
+      color: #5f6fd9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .skill-card .meta {
+      min-width: 0;
+    }
+
+    .skill-card .meta strong,
+    .skill-card .meta small {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .skill-group-title {
+      margin: 18px 0 10px;
+      color: #4e59b2;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .skill-empty {
+      border: 1px dashed #d4d8ff;
+      border-radius: 10px;
+      padding: 12px;
+      color: #6b6b6b;
+      background: #fafbff;
+      font-size: 0.9rem;
+    }
+
+    .weapon-list .weapon-card {
+      gap: 14px;
+      padding: 14px;
+      border-color: #dfe6ff;
+      background: linear-gradient(135deg, #ffffff 0%, #f7f9ff 100%);
+      align-items: flex-start;
+    }
+
+    .weapon-list .weapon-card img,
+    .weapon-list .weapon-card .skill-avatar-placeholder {
+      width: 190px;
+      height: 96px;
+      border-radius: 12px;
+      flex-shrink: 0;
+      background: #edf2ff;
+      object-fit: contain;
+      object-position: center;
+    }
+
+    .weapon-list .weapon-card .meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .weapon-list .weapon-card .meta strong {
+      font-size: 1rem;
+      color: #2f3a7a;
+      white-space: normal;
+    }
+
+    .weapon-stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .weapon-stat-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3b4270;
+      border: 1px solid #dbe2ff;
+      font-size: 0.82rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    @media (max-width: 576px) {
+      .weapon-list .weapon-card img,
+      .weapon-list .weapon-card .skill-avatar-placeholder {
+        width: 140px;
+        height: 80px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-lg mt-4 mb-5">
+    <!-- Back Button -->
+    <div class="back-btn">
+      <a href="/" style="text-decoration: none;">
+        <button class="btn btn-custom text-white">
+          ← Quay về trang chủ
+        </button>
+      </a>
+    </div>
+
+    <!-- Header Section -->
+    <div class="header-section" id="headerSection">
+      <h1>Chi Tiết Trận Đấu</h1>
+      <p class="mb-0" id="matchIdDisplay">Đang tải...</p>
+    </div>
+
+    <!-- Main Content -->
+    <div id="loadingState" class="loading-spinner">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Đang tải...</span>
+      </div>
+    </div>
+
+    <div id="errorState" class="error-box d-none"></div>
+
+    <div id="contentState" class="d-none">
+      <!-- Match Info -->
+      <div class="match-info-grid" id="matchInfoGrid"></div>
+
+      <!-- Tabs -->
+      <div class="tabs-container">
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="ranking-tab" data-bs-toggle="tab" data-bs-target="#ranking"
+              type="button" role="tab">
+              📊 Xếp Hạng
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="teams-tab" data-bs-toggle="tab" data-bs-target="#teams" type="button"
+              role="tab">
+              👥 Chi Tiết Đội
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="players-tab" data-bs-toggle="tab" data-bs-target="#players" type="button"
+              role="tab">
+              🎯 Chi Tiết Player
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="grenades-tab" data-bs-toggle="tab" data-bs-target="#grenades" type="button"
+              role="tab">
+              💣 Lựu Đạn
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content mt-4">
+          <!-- Ranking Tab -->
+          <div class="tab-pane fade show active" id="ranking" role="tabpanel">
+            <div class="table-responsive">
+              <table class="table table-hover stats-table">
+                <thead>
+                  <tr>
+                    <th>Xếp Hạng</th>
+                    <th>Tên Đội</th>
+                    <th>Điểm Sống Sót</th>
+                    <th>Điểm Tiêu Diệt</th>
+                    <th>Tổng Điểm</th>
+                    <th>Số Kill</th>
+                    <th>Booyah</th>
+                    <th>Sát Thương</th>
+                  </tr>
+                </thead>
+                <tbody id="rankingTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Teams Tab -->
+          <div class="tab-pane fade" id="teams" role="tabpanel">
+            <div id="teamsContainer"></div>
+          </div>
+
+          <!-- Players Tab -->
+          <div class="tab-pane fade" id="players" role="tabpanel">
+            <div id="playersContainer"></div>
+          </div>
+
+          <!-- Grenades Tab -->
+          <div class="tab-pane fade" id="grenades" role="tabpanel">
+            <div class="team-section">
+              <h5>Thống Kê Lựu Đạn</h5>
+              <div class="team-stats-grid">
+                <div class="stat-item">
+                  <div class="label">Sử Dụng Lựu Đạn</div>
+                  <div class="value" id="grenadeUse">0</div>
+                </div>
+                <div class="stat-item">
+                  <div class="label">Kill Từ Lựu Đạn</div>
+                  <div class="value" id="grenadeKills">0</div>
+                </div>
+                <div class="stat-item">
+                  <div class="label">Sát Thương Lựu Đạn</div>
+                  <div class="value" id="grenadeDamage">0</div>
+                </div>
+                <div class="stat-item">
+                  <div class="label">Sử Dụng Ice Wall</div>
+                  <div class="value" id="icewallUse">0</div>
+                </div>
+                <div class="stat-item">
+                  <div class="label">Phá Hủy Ice Wall</div>
+                  <div class="value" id="icewallDestroyed">0</div>
+                </div>
+                <div class="stat-item">
+                  <div class="label">Sử Dụng Med Kit</div>
+                  <div class="value" id="medkitUse">0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="playerSkillsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="playerSkillsTitle">Kỹ Năng Player</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="playerSkillsBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="playerWeaponsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="playerWeaponsTitle">Vũ Khí Player</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="playerWeaponsBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="match-details.js"></script>
+</body>
+
+</html>

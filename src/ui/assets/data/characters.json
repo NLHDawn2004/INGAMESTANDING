@@ -1,0 +1,422 @@
+{
+  "A124": {
+    "skillImage": "assets/skills/A124.png",
+    "skillTitle": "A124",
+    "skillName": "A124",
+    "characterImage": ""
+  },
+  "Alok": {
+    "skillImage": "assets/skills/Alok.png",
+    "skillTitle": "Alok",
+    "skillName": "Alok",
+    "characterImage": ""
+  },
+  "Alvaro": {
+    "skillImage": "assets/skills/Alvaro.png",
+    "skillTitle": "Alvaro",
+    "skillName": "Alvaro",
+    "characterImage": ""
+  },
+  "Alvaro Awaken": {
+    "skillImage": "assets/skills/Alvaro%20Awaken.png",
+    "skillTitle": "Alvaro Awaken",
+    "skillName": "Split Blitz",
+    "characterImage": ""
+  },
+  "Andrew": {
+    "skillImage": "assets/skills/Andrew.png",
+    "skillTitle": "Andrew",
+    "skillName": "Andrew",
+    "characterImage": ""
+  },
+  "Antonio": {
+    "skillImage": "assets/skills/Antonio.png",
+    "skillTitle": "Antonio",
+    "skillName": "Gangster Spirit",
+    "characterImage": ""
+  },
+  "Awaken Alok": {
+    "skillImage": "assets/skills/Awaken%20Alok.png",
+    "skillTitle": "Awaken Alok",
+    "skillName": "Awaken Alok",
+    "characterImage": ""
+  },
+  "Awaken Andrew": {
+    "skillImage": "assets/skills/Awaken%20Andrew.png",
+    "skillTitle": "Awaken Andrew",
+    "skillName": "Awaken Andrew",
+    "characterImage": ""
+  },
+  "Awaken Hayato": {
+    "skillImage": "assets/skills/Awaken%20Hayato.png",
+    "skillTitle": "Awaken Hayato",
+    "skillName": "Awaken Hayato",
+    "characterImage": ""
+  },
+  "Awaken Kelly": {
+    "skillImage": "assets/skills/Awaken%20Kelly.png",
+    "skillTitle": "Awaken Kelly",
+    "skillName": "Awaken Kelly",
+    "characterImage": ""
+  },
+  "Awaken Moco": {
+    "skillImage": "assets/skills/Awaken%20Moco.png",
+    "skillTitle": "Awaken Moco",
+    "skillName": "Awaken Moco",
+    "characterImage": ""
+  },
+  "Caroline": {
+    "skillImage": "assets/skills/Caroline.png",
+    "skillTitle": "Caroline",
+    "skillName": "Caroline",
+    "characterImage": ""
+  },
+  "Chrono": {
+    "skillImage": "assets/skills/Chrono.png",
+    "skillTitle": "Chrono",
+    "skillName": "Time Turner",
+    "characterImage": ""
+  },
+  "Clu": {
+    "skillImage": "assets/skills/Clu.png",
+    "skillTitle": "Clu",
+    "skillName": "Clu",
+    "characterImage": ""
+  },
+  "D-Bee": {
+    "skillImage": "assets/skills/D-Bee.png",
+    "skillTitle": "D-Bee",
+    "skillName": "D-Bee",
+    "characterImage": ""
+  },
+  "Dasha": {
+    "skillImage": "assets/skills/Dasha.png",
+    "skillTitle": "Dasha",
+    "skillName": "Dasha",
+    "characterImage": ""
+  },
+  "Dimitri": {
+    "skillImage": "assets/skills/Dimitri.png",
+    "skillTitle": "Dimitri",
+    "skillName": "Dimitri",
+    "characterImage": ""
+  },
+  "Ford": {
+    "skillImage": "assets/skills/Ford.png",
+    "skillTitle": "Ford",
+    "skillName": "Iron Will",
+    "characterImage": ""
+  },
+  "Hayato": {
+    "skillImage": "assets/skills/Hayato.png",
+    "skillTitle": "Hayato",
+    "skillName": "Hayato",
+    "characterImage": ""
+  },
+  "Homer": {
+    "skillImage": "assets/skills/Homer.png",
+    "skillTitle": "Homer",
+    "skillName": "Homer",
+    "characterImage": ""
+  },
+  "Ignis": {
+    "skillImage": "assets/skills/Ignis.png",
+    "skillTitle": "Ignis",
+    "skillName": "Ignis",
+    "characterImage": ""
+  },
+  "Iris": {
+    "skillImage": "assets/skills/Iris.png",
+    "skillTitle": "Iris",
+    "skillName": "Iris",
+    "characterImage": ""
+  },
+  "J.Biebs": {
+    "skillImage": "assets/skills/J.Biebs.png",
+    "skillTitle": "J.Biebs",
+    "skillName": "Silent Sentinel",
+    "characterImage": ""
+  },
+  "J.Biebs Chip": {
+    "skillImage": "assets/skills/J.Biebs%20Chip.png",
+    "skillTitle": "J.Biebs Chip",
+    "skillName": "Silent Sentinel",
+    "characterImage": ""
+  },
+  "Jai": {
+    "skillImage": "assets/skills/Jai.png",
+    "skillTitle": "Jai",
+    "skillName": "Jai",
+    "characterImage": ""
+  },
+  "Joseph": {
+    "skillImage": "assets/skills/Joseph.png",
+    "skillTitle": "Joseph",
+    "skillName": "Nutty Movement",
+    "characterImage": ""
+  },
+  "Jota": {
+    "skillImage": "assets/skills/Jota.png",
+    "skillTitle": "Jota",
+    "skillName": "Jota",
+    "characterImage": ""
+  },
+  "K": {
+    "skillImage": "assets/skills/K.png",
+    "skillTitle": "K",
+    "skillName": "K",
+    "characterImage": ""
+  },
+  "Kairos": {
+    "skillImage": "assets/skills/Kairos.png",
+    "skillTitle": "Kairos",
+    "skillName": "Kairos",
+    "characterImage": ""
+  },
+  "Kapella": {
+    "skillImage": "assets/skills/Kapella.png",
+    "skillTitle": "Kapella",
+    "skillName": "Kapella",
+    "characterImage": ""
+  },
+  "Kassie": {
+    "skillImage": "assets/skills/Kassie.png",
+    "skillTitle": "Kassie",
+    "skillName": "Electro Therapy",
+    "characterImage": ""
+  },
+  "Kelly": {
+    "skillImage": "assets/skills/Kelly.png",
+    "skillTitle": "Kelly",
+    "skillName": "Kelly",
+    "characterImage": ""
+  },
+  "Kenta": {
+    "skillImage": "assets/skills/Kenta.png",
+    "skillTitle": "Kenta",
+    "skillName": "Kenta",
+    "characterImage": ""
+  },
+  "Kla": {
+    "skillImage": "assets/skills/Kla.png",
+    "skillTitle": "Kla",
+    "skillName": "Kla",
+    "characterImage": ""
+  },
+  "Koda": {
+    "skillImage": "assets/skills/Koda.png",
+    "skillTitle": "Koda",
+    "skillName": "Aurora Vision",
+    "characterImage": ""
+  },
+  "Laura": {
+    "skillImage": "assets/skills/Laura.png",
+    "skillTitle": "Laura",
+    "skillName": "Laura",
+    "characterImage": ""
+  },
+  "Leon": {
+    "skillImage": "assets/skills/Leon.png",
+    "skillTitle": "Leon",
+    "skillName": "Leon",
+    "characterImage": ""
+  },
+  "Lila": {
+    "skillImage": "assets/skills/Lila.png",
+    "skillTitle": "Lila",
+    "skillName": "Lila",
+    "characterImage": ""
+  },
+  "Luna": {
+    "skillImage": "assets/skills/Luna.png",
+    "skillTitle": "Luna",
+    "skillName": "Luna",
+    "characterImage": ""
+  },
+  "Luqueta": {
+    "skillImage": "assets/skills/Luqueta.png",
+    "skillTitle": "Luqueta",
+    "skillName": "Luqueta",
+    "characterImage": ""
+  },
+  "Maro": {
+    "skillImage": "assets/skills/Maro.png",
+    "skillTitle": "Maro",
+    "skillName": "Falcon Fervor",
+    "characterImage": ""
+  },
+  "Maxim": {
+    "skillImage": "assets/skills/Maxim.png",
+    "skillTitle": "Maxim",
+    "skillName": "Maxim",
+    "characterImage": ""
+  },
+  "Miguel": {
+    "skillImage": "assets/skills/Miguel.png",
+    "skillTitle": "Miguel",
+    "skillName": "Miguel",
+    "characterImage": ""
+  },
+  "Misha": {
+    "skillImage": "assets/skills/Misha.png",
+    "skillTitle": "Misha",
+    "skillName": "Misha",
+    "characterImage": ""
+  },
+  "Moco": {
+    "skillImage": "assets/skills/Moco.png",
+    "skillTitle": "Moco",
+    "skillName": "Moco",
+    "characterImage": ""
+  },
+  "Moco Awaken'Enigma'": {
+    "skillImage": "assets/skills/Moco%20Awaken'Enigma'.png",
+    "skillTitle": "Moco Awaken'Enigma'",
+    "skillName": "Enigma Eye",
+    "characterImage": ""
+  },
+  "Morse": {
+    "skillImage": "assets/skills/Morse.png",
+    "skillTitle": "Morse",
+    "skillName": "Stealth Bytes",
+    "characterImage": ""
+  },
+  "Nairi": {
+    "skillImage": "assets/skills/Nairi.png",
+    "skillTitle": "Nairi",
+    "skillName": "Nairi",
+    "characterImage": ""
+  },
+  "Nero": {
+    "skillImage": "assets/skills/Nero.png",
+    "skillTitle": "Nero",
+    "skillName": "Cryo Mind",
+    "characterImage": ""
+  },
+  "Nikita": {
+    "skillImage": "assets/skills/Nikita.png",
+    "skillTitle": "Nikita",
+    "skillName": "Firearms Expert",
+    "characterImage": ""
+  },
+  "Notora": {
+    "skillImage": "assets/skills/Notora.png",
+    "skillTitle": "Notora",
+    "skillName": "Notora",
+    "characterImage": ""
+  },
+  "Olivia": {
+    "skillImage": "assets/skills/Olivia.png",
+    "skillTitle": "Olivia",
+    "skillName": "Healing Touch",
+    "characterImage": ""
+  },
+  "Orion": {
+    "skillImage": "assets/skills/Orion.png",
+    "skillTitle": "Orion",
+    "skillName": "Orion",
+    "characterImage": ""
+  },
+  "Oscar": {
+    "skillImage": "assets/skills/Oscar.png",
+    "skillTitle": "Oscar",
+    "skillName": "Valiant Dash",
+    "characterImage": ""
+  },
+  "Otho": {
+    "skillImage": "assets/skills/Otho.png",
+    "skillTitle": "Otho",
+    "skillName": "Otho",
+    "characterImage": ""
+  },
+  "Paloma": {
+    "skillImage": "assets/skills/Paloma.png",
+    "skillTitle": "Paloma",
+    "skillName": "Paloma",
+    "characterImage": ""
+  },
+  "Rafael": {
+    "skillImage": "assets/skills/Rafael.png",
+    "skillTitle": "Rafael",
+    "skillName": "Dead Silent",
+    "characterImage": ""
+  },
+  "Ryden": {
+    "skillImage": "assets/skills/Ryden.png",
+    "skillTitle": "Ryden",
+    "skillName": "Ryden",
+    "characterImage": ""
+  },
+  "Santino": {
+    "skillImage": "assets/skills/Santino.png",
+    "skillTitle": "Santino",
+    "skillName": "Santino",
+    "characterImage": ""
+  },
+  "Shani": {
+    "skillImage": "assets/skills/Shani.png",
+    "skillTitle": "Shani",
+    "skillName": "Gear Recycle",
+    "characterImage": ""
+  },
+  "Shirou": {
+    "skillImage": "assets/skills/Shirou.png",
+    "skillTitle": "Shirou",
+    "skillName": "Shirou",
+    "characterImage": ""
+  },
+  "Skyler": {
+    "skillImage": "assets/skills/Skyler.png",
+    "skillTitle": "Skyler",
+    "skillName": "Riptide Rhythm",
+    "characterImage": ""
+  },
+  "Sonia": {
+    "skillImage": "assets/skills/Sonia.png",
+    "skillTitle": "Sonia",
+    "skillName": "Sonia",
+    "characterImage": ""
+  },
+  "Steffie": {
+    "skillImage": "assets/skills/Steffie.png",
+    "skillTitle": "Steffie",
+    "skillName": "Painted Refuge",
+    "characterImage": ""
+  },
+  "Suzy": {
+    "skillImage": "assets/skills/Suzy.png",
+    "skillTitle": "Suzy",
+    "skillName": "Money Mark",
+    "characterImage": ""
+  },
+  "Tatsuya": {
+    "skillImage": "assets/skills/Tatsuya.png",
+    "skillTitle": "Tatsuya",
+    "skillName": "Rebel Rush",
+    "characterImage": ""
+  },
+  "Thiva": {
+    "skillImage": "assets/skills/Thiva.png",
+    "skillTitle": "Thiva",
+    "skillName": "Vital Vibes",
+    "characterImage": ""
+  },
+  "Wolfrahh": {
+    "skillImage": "assets/skills/Wolfrahh.png",
+    "skillTitle": "Wolfrahh",
+    "skillName": "Wolfrahh",
+    "characterImage": ""
+  },
+  "Wukong": {
+    "skillImage": "assets/skills/Wukong.png",
+    "skillTitle": "Wukong",
+    "skillName": "Wukong",
+    "characterImage": ""
+  },
+  "Xayne": {
+    "skillImage": "assets/skills/Xayne.png",
+    "skillTitle": "Xayne",
+    "skillName": "Xayne",
+    "characterImage": ""
+  }
+}

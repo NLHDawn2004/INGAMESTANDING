@@ -1,0 +1,12 @@
+/node_modules
+/dist
+/build
+/team-branding.json
+/team-branding.json.tmp
+/team-logos/
+/hud-kv-backups/
+/scoreboard-cpr.json
+/scoreboard-cpr.json.tmp
+.env
+.env.*
+!.env.example

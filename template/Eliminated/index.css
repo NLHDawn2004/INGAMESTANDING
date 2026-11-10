@@ -1,0 +1,169 @@
+@font-face {
+  font-family: GFF_Black;
+  src: url('./assets/fonts/GFF-VN-BLACK.woff2');
+}
+
+@font-face {
+  font-family: GFF_Bold;
+  src: url('./assets/fonts/GFF-LATIN-BOLD.woff2');
+}
+
+@font-face {
+  font-family: GFF_ExtraBold;
+  src: url('./assets/fonts/GFF-LATIN-EXTRABOLD.woff2');
+}
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+.wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.container {
+  margin-top: 30px;
+  height: max-content;
+  display: flex;
+  /* start without grayscale */
+  filter: grayscale(0%);
+  /* filter transitions in 500ms with no delay by default */
+  transition: filter 500ms ease-in-out 200ms;
+}
+
+/* TitleFrame slides down from top when the container is hovered */
+/* #TitleFrame {
+  transform: translateY(-100%);
+  transition: transform 500ms ease-in-out;
+  will-change: transform;
+}
+
+.container:hover #TitleFrame {
+  transform: translateY(0);
+} */
+
+.FrameLogo, .FrameLogoImg {
+ width: 139px;
+ height: 139px;
+}
+
+.FrameLogo {
+  position: relative;
+}
+
+.FrameLogoImg, #FrameLogoAvatar {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#FrameLogoAvatar {
+  width: 105px;
+  height: 105px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.right {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.BoxDataTop {
+  display: flex;
+  padding: 0;
+  margin: 0;
+  align-items: center;
+  position: relative;
+}
+
+.BoxDataBottom {
+  position: absolute;
+  bottom: 0;
+  transition: 500ms;
+}
+
+.BoxDataTop img {
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+}
+
+.BoxDataBottom img {
+  height: 100%;
+  z-index: 1;
+  transition: 500ms;
+}
+
+.BoxDataTopTagName {
+  color: white;
+  font-family: GFF_Black;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  font-size: 32pt;
+  margin-left: 40px;
+  z-index: 4;
+}
+
+.BoxDataTopElims {
+  color: white;
+  font-family: GFF_Bold;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  font-size: 24pt;
+  margin-right: 40px;
+  right: 0;
+  color: orange;
+  z-index: 4;
+}
+
+/* On hover, slide the TitleFrame down (via transform) */
+.BoxDataBottom.active {
+  bottom: 0;
+}
+
+.container.active {
+  /* wait for the TitleFrame slide (500ms) to finish, then start grayscale */
+  transition-delay: 500ms;
+  filter: grayscale(100%);
+}
+
+.move {
+  position: absolute;
+  transition: 500ms;
+  top: -100%;
+}
+
+.move.active {
+  top: 0;
+}
+
+.BoxDataBottomContainer {
+  position: relative;
+}
+
+.BoxDataBottomContainer h1 {
+  position: absolute;
+  font-family: GFF_ExtraBold;
+  font-style: italic;
+  font-size: 18pt;
+  top: 45%;
+  right: 35px;
+  transform: translateY(-50%);
+}

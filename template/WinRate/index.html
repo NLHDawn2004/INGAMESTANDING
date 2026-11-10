@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./index.css">
+  <title>Document</title>
+</head>
+
+<body>
+  <div class="container">
+    <div id="list" class="list">
+    </div>
+  </div>
+  <script src="../overlay-connection.js"></script>
+  <script src="../team-branding.js"></script>
+  <script>
+    const ws = connectOverlay(11021)
+
+    const list = document.getElementById("list")
+
+    // Debug overlay & batching
+    const debugOverlay = document.createElement('div');
+    debugOverlay.id = 'debug-overlay';
+    debugOverlay.textContent = 'msgs/s: 0 | last: -';
+    document.body.appendChild(debugOverlay);
+
+    let pendingWinratePayload = null;
+    let renderScheduled = false;
+    const msgTimestamps = [];
+
+    function updateDebug() {
+      const now = Date.now();
+      while (msgTimestamps.length && msgTimestamps[0] < now - 1000) msgTimestamps.shift();
+      debugOverlay.textContent = `msgs/s: ${msgTimestamps.length} | last: ${msgTimestamps.length ? new Date(msgTimestamps[msgTimestamps.length - 1]).toLocaleTimeString() : '-'} `;
+    }
+
+    // Render up to 4 player slots using images. Supports payload with `team.players` array of { id, name, alive }
+    function renderPlayerSlots(team) {
+      const makeImg = (status, p) => {
+        const src = status === 'alive' ? './assets/PlayerAlive.png' : './assets/PlayerEliminated.png';
+        const title = p && p.name ? p.name.toString().replace(/"/g, '&#34;') : '';
+        return `<img class="player ${status}" src="${src}" alt="${status}" ${title ? `title="${title}"` : ''}>`;
+      };
+
+      if (team.players && Array.isArray(team.players)) {
+        const players = team.players.slice(0, 4);
+        const html = players.map(p => makeImg(p.alive ? 'alive' : 'eliminated', p)).join('');
+        const rest = Math.max(0, 4 - players.length);
+        return html + Array.from({ length: rest }).map(() => makeImg('eliminated')).join('');
+      }
+
+      // Fallback: use memberCount to show number of alive icons
+      const aliveCount = Math.max(0, Math.min(4, team.memberCount ?? 0));
+      return Array.from({ length: aliveCount }).map(() => makeImg('alive')).concat(
+        Array.from({ length: 4 - aliveCount }).map(() => makeImg('eliminated'))
+      ).join('');
+    }
+
+    ws.addEventListener("error", (ev) => console.log(ev))
+
+    ws.addEventListener("message", (ev) => {
+      const payload = JSON.parse(ev.data)
+      msgTimestamps.push(Date.now());
+
+      updateDebug();
+
+      if (payload.type === "winrate_update") {
+        pendingWinratePayload = payload;
+        if (!renderScheduled) {
+          renderScheduled = true;
+          requestAnimationFrame(() => {
+            renderScheduled = false;
+            renderPending();
+          });
+        }
+      }
+    })
+
+    const applyTeamBranding = connectTeamBranding(apply => {
+      document.querySelectorAll(".item").forEach(item => apply(
+        item.id, item.querySelector(".tagName"), item.querySelector(".item_logo-img")
+      ));
+    });
+
+    function renderPending() {
+      console.log(pendingWinratePayload)
+      if (!pendingWinratePayload) return;
+      const teams = pendingWinratePayload.data;
+      teams.forEach(team => {
+        let item = document.getElementById(team.name);
+        const prevCount = item ? Number(item.dataset.memberCount || 0) : 0;
+        if (team.winRate > 0 && pendingWinratePayload.isInit == true) {
+          item = document.createElement("div");
+          item.className = "item";
+          item.id = team.name;
+          item.dataset.memberCount = team.memberCount ?? 0;
+          item.innerHTML = `
+        <div class="item_logo">
+          <img class="item_logo-img" alt="">
+          <img class="item_logo-bg" src="./assets/LogoShape.png" alt="">
+        </div>
+        <div class="item_right">
+          <div class="item_infobox">
+            <div class="item_infobox-content">
+              <h1 class="tagName"></h1>
+              <div class="aliveBox">
+                ${renderPlayerSlots(team)}
+              </div>
+            </div>
+            <img src="./assets/InfoBox.png" alt="" class="item_infobox-bg">
+          </div>
+          <div class="item_winrate">
+            <h1 class="winRateValue">${Number(team.winRate)}%</h1>
+            <img class="item_winrate-bg" src="./assets/WinRate.png" alt="">
+          </div>
+        </div>`;
+
+          applyTeamBranding(team.name, item.querySelector(".tagName"), item.querySelector(".item_logo-img"));
+          item.addEventListener('animationend', () => {
+            if (item.classList.contains('swept')) item.remove();
+          }, { once: true });
+
+          list.appendChild(item);
+        } else console.log(team.winRate > 0 && team.isInit == true, team.winRate, team.isInit);
+        if (item) {
+          const winElem = item.querySelector('.winRateValue');
+          if (winElem) winElem.textContent = `${team.winRate}%`;
+
+          const aliveBox = item.querySelector('.aliveBox');
+          if (aliveBox) {
+            aliveBox.innerHTML = renderPlayerSlots(team);
+          }
+
+          item.dataset.memberCount = team.memberCount ?? 0;
+          item.dataset.winrate = String(team.winRate ?? 0);
+        }
+
+        const curCount = item ? Number(item.dataset.memberCount || 0) : 0;
+        if (item && curCount === 0 && prevCount > 0 && !item.classList.contains('swept')) {
+          item.classList.add('swept');
+        }
+      });
+
+      // Reorder items visually (FLIP animation)
+      reorderItems();
+
+      pendingWinratePayload = null;
+    }
+
+    ws.addEventListener("open", (e) => { console.log("Connect") })
+
+    // Reorder items using FLIP to animate movement when sort order changes
+    function reorderItems() {
+      const container = list;
+      const items = Array.from(container.children);
+      if (items.length <= 1) return;
+
+      // record old positions
+      const oldRects = new Map();
+      items.forEach(node => oldRects.set(node.id, node.getBoundingClientRect()));
+
+      // determine target order by winrate (desc)
+      const sorted = items.slice().sort((a, b) => Number(b.dataset.winrate || 0) - Number(a.dataset.winrate || 0));
+      // quick check: if order unchanged, skip
+      let changed = false;
+      for (let i = 0; i < sorted.length; i++) {
+        if (sorted[i] !== items[i]) { changed = true; break; }
+      }
+      if (!changed) return;
+
+      // move DOM nodes to new order (this changes layout)
+      sorted.forEach(node => container.appendChild(node));
+
+      // measure new positions
+      const newRects = new Map();
+      sorted.forEach(node => newRects.set(node.id, node.getBoundingClientRect()));
+
+      // play FLIP: invert and animate to zero
+      sorted.forEach(node => {
+        const oldRect = oldRects.get(node.id);
+        const newRect = newRects.get(node.id);
+        if (!oldRect || !newRect) return;
+        const dx = oldRect.left - newRect.left;
+        const dy = oldRect.top - newRect.top;
+        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return; // no visible change
+
+        // apply inverse transform
+        node.style.transform = `translate(${dx}px, ${dy}px)`;
+        node.style.transition = 'transform 1000ms cubic-bezier(.16,.84,.32,1)';
+
+        // trigger transition to identity
+        requestAnimationFrame(() => {
+          node.style.transform = '';
+        });
+
+        // cleanup after transition
+        const onEnd = (e) => {
+          if (e.propertyName === 'transform') {
+            node.style.transition = '';
+            node.style.transform = '';
+            node.removeEventListener('transitionend', onEnd);
+          }
+        };
+        node.addEventListener('transitionend', onEnd);
+      });
+    }
+  </script>
+</body>
+
+</html>

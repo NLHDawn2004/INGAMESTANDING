@@ -1,0 +1,90 @@
+:root {
+  color-scheme: dark;
+  font: 16px/1.5 system-ui, sans-serif;
+  background: #101319;
+  color: #f0f2f7;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+header, main { max-width: 1240px; margin: auto; padding: 20px; }
+header { padding-bottom: 0; }
+main { display: grid; gap: 16px; }
+section, main > details {
+  padding: 18px;
+  background: #1b202b;
+  border: 1px solid #384152;
+  border-radius: 12px;
+}
+h1, h2, h3 { margin: 0 0 8px; }
+p, small { color: #c2cbda; }
+p { margin: 0 0 12px; }
+.inputs, .previews { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+#hud-kv-preview:not([hidden]) { display: flex; flex-wrap: wrap; gap: 16px; margin: 12px 0; }
+#hud-kv-preview figure { margin: 0; }
+#hud-kv-preview img, #hud-kv-preview canvas {
+  display: block;
+  width: 165px;
+  height: 295px;
+  background: repeating-conic-gradient(#aeb4bf 0% 25%, #e2e5ec 0% 50%) 0 0 / 16px 16px;
+}
+#hud-kv-status { margin-top: 12px; }
+#hud-kv-status[data-error] { color: #ffb2b2; }
+.scoreboard-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 404px) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+  margin-top: 16px;
+}
+@media (max-width: 720px) {
+  .scoreboard-controls { grid-template-columns: minmax(0, 1fr); }
+  .scoreboard-controls > article:first-child { max-width: 404px; }
+}
+label { display: block; font-weight: 600; margin-bottom: 4px; }
+input, button { font: inherit; border-radius: 6px; border: 1px solid #56647a; padding: 7px 9px; }
+input { width: 100%; min-width: 0; background: #101319; }
+select { width: 100%; font: inherit; border-radius: 6px; border: 1px solid #56647a; padding: 7px 9px; background: #101319; }
+button { background: #293347; cursor: pointer; }
+button:disabled { opacity: .55; cursor: default; }
+.primary { background: #386be2; border-color: #7d9df0; color: white; }
+#status { margin: 14px 0 8px; }
+#status[data-error] { color: #ffb2b2; }
+.branding-bulk { margin-bottom: 14px; }
+#branding-bulk-status, #branding-inline-status { margin: 4px 0 0; overflow-wrap: anywhere; }
+#branding-inline-status[data-error] { color: #ffb2b2; }
+#matches { padding: 0; list-style: none; }
+#matches li { border-top: 1px solid #384152; padding: 8px 0; }
+#matches span { flex: 1; overflow-wrap: anywhere; }
+iframe { display: block; width: 100%; border: 1px solid #384152; border-radius: 6px; }
+iframe[hidden] { display: none; }
+#details, #management { height: 65vh; margin-top: 12px; background: white; }
+.previews { margin-top: 16px; }
+.preview-viewport { position: relative; overflow: hidden; aspect-ratio: 16 / 9; background: #101319; }
+.preview-viewport iframe { position: absolute; width: 1920px; height: 1080px; border: 0; transform-origin: top left; }
+.scoreboard-viewport {
+  --scoreboard-height: 300;
+  --preview-width: max(var(--scoreboard-preview-width, 404), calc(404 * var(--scoreboard-height-only, 0) / var(--scoreboard-height)));
+  --preview-height: max(var(--scoreboard-requested-height, 0), calc(var(--scoreboard-height) * var(--scoreboard-width-only-factor, 1)));
+  aspect-ratio: var(--preview-width) / var(--preview-height);
+  max-height: 720px;
+}
+.scoreboard-viewport iframe { width: calc(var(--preview-width) * 1px); height: calc(var(--preview-height) * 1px); }
+.scoreboard-size-controls { margin-top: 12px; }
+.scoreboard-motion-controls { margin-bottom: 8px; }
+#scoreboard-motion-status { flex-basis: 100%; margin: 0; }
+#scoreboard-motion-status:empty { display: none; }
+#scoreboard-motion-status[data-error] { color: #ffb2b2; }
+.scoreboard-cpr-controls { margin: 12px 0; }
+.scoreboard-cpr-controls h4 { margin: 0 0 8px; }
+.scoreboard-cpr-controls .row { margin-top: 8px; }
+.scoreboard-cpr-label { display: block; font-weight: 600; margin-bottom: 4px; }
+#scoreboard-cpr-status { margin: 4px 0 0; overflow-wrap: anywhere; }
+#scoreboard-cpr-status:empty { display: none; }
+#scoreboard-cpr-status[data-error] { color: #ffb2b2; }
+.scoreboard-size-controls .row { margin: 8px 0; }
+.scoreboard-dimensions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+#scoreboard-copy-status { margin: 4px 0 0; }
+a { color: #a8c5ff; }
+summary { cursor: pointer; }
+pre { max-height: 240px; overflow: auto; white-space: pre-wrap; }

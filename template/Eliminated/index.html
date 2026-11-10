@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./index.css">
+  <title></title>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="move">
+      <div class="container">
+        <div class="FrameLogo">
+          <img src="./assets/GDHS9_Eliminated_Frame_Logo.png" id="FrameLogoImg" alt="">
+          <img src="./assets/test_logo.png" id="FrameLogoAvatar" onerror="this.src='./assets/test_logo.png'">
+        </div>
+        <div class="right">
+          <div class="BoxDataTop">
+            <h1 id="BoxDataTopTagName" class="BoxDataTopTagName">TAGG</h1>
+            <h1 id="BoxDataTopElims" class="BoxDataTopElims">0 Elims</h1>
+            <img src="./assets/GDHS9_Eliminated_BoxData.png" alt="">
+          </div>
+          <div class="BoxDataBottom">
+            <div class="BoxDataBottomContainer">
+              <h1 id="Rank">#12</h1>
+              <img src="./assets/GDHS9_Eliminated_TitleFrame.png" alt="" id="TitleFrame">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../overlay-connection.js"></script>
+  <script src="../team-branding.js"></script>
+  <script>
+    (function () {
+      const FADE_IN = 1000; // ms (must match CSS)
+      const DISPLAY = 5000; // ms visible
+      const FADE_OUT = 1000; // ms
+
+      const move = document.querySelector('.move');
+      const container = document.querySelector('.container');
+      const BoxDataBottom = document.querySelector('.BoxDataBottom');
+      const textEl = document.getElementById('BoxDataTopTagName');
+      const pointsEl = document.getElementById('BoxDataTopElims');
+      const rankEl = document.getElementById('Rank');
+      const img = document.getElementById("FrameLogoAvatar")
+      let currentTeam;
+      const applyTeamBranding = connectTeamBranding(apply => {
+        if (currentTeam) apply(currentTeam, textEl, img);
+      });
+
+      const queue = [];
+      let processing = false;
+
+      function enqueue(team) {
+        queue.push(team);
+        if (!processing) processNext();
+      }
+
+      function processNext() {
+        const item = queue.shift();
+        if (!item) { processing = false; return; }
+        processing = true;
+
+        console.log(item)
+
+        currentTeam = item.teamName;
+        applyTeamBranding(currentTeam, textEl, img);
+        if (pointsEl) pointsEl.textContent = `${item.elims} ELIMS`
+        if(rankEl) rankEl.textContent = `#${item.rank}`
+        // add class to move to trigger banner show
+        move?.classList.add('active');
+
+        setTimeout(() => {
+          container.classList.add("active")
+          BoxDataBottom.classList.add("active")
+        }, FADE_IN)
+
+        // After fade in + display time, remove class to hide and then process next
+        setTimeout(() => {
+          move?.classList.remove('active');
+          setTimeout(() => {
+            BoxDataBottom.classList.remove("active")
+            container.classList.remove("active")
+            processNext()
+          }, FADE_OUT);
+        }, FADE_IN + DISPLAY);
+      }
+
+      // Connect to server
+      let ws;
+      try {
+        ws = connectOverlay(11020);
+
+        ws.addEventListener('open', () => {
+          console.log('[WS] Eliminated connected');
+        });
+
+        ws.addEventListener('message', (ev) => {
+          console.log('[WS] raw message:', ev.data);
+          try {
+            const payload = JSON.parse(ev.data);
+            if (payload.type === 'team_eliminated' && Array.isArray(payload.data)) {
+              console.log('[WS] team_eliminated items:', payload.data.length);
+              payload.data.forEach(d => {
+                enqueue(d);
+              })
+            } else {
+              console.warn('[WS] unexpected payload type:', payload?.type, payload);
+            }
+          } catch (e) {
+            console.error('[WS] parse error', e);
+          }
+        });
+
+        ws.addEventListener('close', () => console.log('[WS] closed'));
+        ws.addEventListener('error', (e) => console.error('[WS] error', e));
+      } catch (e) {
+        console.error('[WS] failed to connect', e);
+      }
+
+      // Expose for debugging
+      window.__elimQueue = { enqueue, queue };
+    })();
+  </script>
+</body>
+
+</html>

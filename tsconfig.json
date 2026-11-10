@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    /* Cấu hình Cơ bản */
+    "target": "ES2020", /* Chỉ định phiên bản ECMAScript mục tiêu cho đầu ra. ES2020 phù hợp với Node.js hiện đại. */
+    "module": "nodenext", /* Chỉ định hệ thống module cho mã đã biên dịch. CommonJS là mặc định cho Node.js. */
+    "esModuleInterop": true, /* Cho phép tương tác giữa CommonJS và ES Modules (Ví dụ: import * as foo from "foo" từ module CommonJS). Rất quan trọng cho các thư viện như 'mqtt', 'request'. */
+    "forceConsistentCasingInFileNames": true, /* Đảm bảo tên file được sử dụng nhất quán về chữ hoa/thường. */
+    "strict": true, /* Bật tất cả các tùy chọn kiểm tra type nghiêm ngặt. */
+    "skipLibCheck": true, /* Bỏ qua kiểm tra type của các file .d.ts được khai báo (giúp tăng tốc độ biên dịch). */
+    /* Cấu hình Module */
+    "moduleResolution": "nodenext", /* Cách TypeScript tìm kiếm các module. Luôn dùng 'node' cho dự án Node.js. */
+    "allowSyntheticDefaultImports": true, /* Cho phép 'import' mặc định từ các module không có export mặc định (khi dùng chung với esModuleInterop). */
+    /* Cấu hình Đầu ra */
+    "declaration": true, /* Tạo file .d.ts (Declaration file) để các dự án khác có thể sử dụng các interface bạn đã tạo. Rất quan trọng cho thư viện. */
+    "outDir": "./dist", /* Thư mục đầu ra cho mã đã biên dịch (.js và .d.ts). */
+    "rootDir": "./src", /* Thư mục gốc chứa mã nguồn (.ts, .js của bạn). */
+    /* Cấu hình Codebase */
+    "resolveJsonModule": true, /* Cho phép nhập các tệp .json dưới dạng module. */
+    "sourceMap": true, /* Tạo file .map để dễ dàng debug mã TypeScript trong Node.js. */
+    "allowJs": true,
+    "baseUrl": ".",
+    "ignoreDeprecations": "5.0",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "@types/*": [
+        "src/types/*"
+      ]
+    },
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types"
+    ]
+  },
+  "include": [
+    "src/**/*",
+  ],
+  "exclude": [
+    "node_modules", /* Bỏ qua thư mục node_modules */
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ],
+  "ts-node": {
+    "files": true
+  }
+}

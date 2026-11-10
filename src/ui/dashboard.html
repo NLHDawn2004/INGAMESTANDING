@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FF Debugger Tools</title>
+  <link rel="stylesheet" href="/dashboard.css">
+  <link rel="stylesheet" href="/overlays/Scoreboard/cpr.css">
+  <script type="module" src="/dashboard.js"></script>
+  <script type="module" src="/hud-kv.js"></script>
+  <script type="module" src="/scoreboard-cpr.js"></script>
+</head>
+<body>
+  <header>
+    <h1>FF Debugger Tools</h1>
+    <p>Bảng điều khiển trận đấu</p>
+  </header>
+  <main>
+    <section aria-labelledby="setup-title">
+      <h2 id="setup-title">Dữ liệu ngày thi đấu</h2>
+      <div class="inputs">
+        <div>
+          <label for="debug-path">File debug</label>
+          <input id="debug-path" type="text" placeholder="Dán đường dẫn đầy đủ đến file .log">
+          <small>Trong File Explorer, dùng Copy as path rồi dán vào đây.</small>
+        </div>
+        <div>
+          <label for="roster">File PlayerName</label>
+          <input id="roster" type="file" accept=".json">
+          <small id="roster-info">Chọn PlayerNameOverwrite.json.</small>
+        </div>
+        <form id="match-form">
+          <label for="match-id">Match ID đã hoàn tất</label>
+          <div class="row">
+            <input id="match-id" type="text" inputmode="numeric" placeholder="Nhập Match ID sau mỗi trận">
+            <button id="add-match">Thêm trận</button>
+            <button id="finish-match" hidden>Chốt trận đang hiển thị</button>
+          </div>
+        </form>
+      </div>
+      <p id="status" role="status">Sẵn sàng.</p>
+      <div class="row">
+        <button id="start" class="primary">Bắt đầu theo dõi</button>
+        <button id="stop" disabled>Dừng theo dõi</button>
+      </div>
+    </section>
+    <section aria-labelledby="hud-kv-title">
+      <h2 id="hud-kv-title">KV cho HUD và Scoreboard Realtime</h2>
+      <p>Chọn thư mục KV hoặc một ảnh. Sau khi áp dụng, HUD trong game và bảng điểm trực tiếp sẽ dùng cùng nền KV.</p>
+      <div class="inputs">
+        <div>
+          <label for="hud-kv-folder">Chọn thư mục KV</label>
+          <input id="hud-kv-folder" type="file" webkitdirectory>
+        </div>
+        <div>
+          <label for="hud-kv-image">Chọn ảnh KV</label>
+          <input id="hud-kv-image" type="file" accept=".png,.jpg,.jpeg,.webp">
+        </div>
+      </div>
+      <div id="hud-kv-preview" hidden>
+        <figure>
+          <img id="hud-kv-reference" alt="Khuôn HUD gốc">
+          <figcaption>Khuôn HUD gốc</figcaption>
+        </figure>
+        <figure>
+          <canvas id="hud-kv-result" width="330" height="590" role="img" aria-label="KV sau khi chuyển sang khuôn HUD"></canvas>
+          <figcaption>Kết quả 330 × 590 px</figcaption>
+        </figure>
+      </div>
+      <p id="hud-kv-status" role="status">Chọn KV để xem thử. File gốc sẽ được sao lưu trước khi thay.</p>
+      <button id="hud-kv-apply" type="button" class="primary" disabled>Áp dụng cho HUD và Scoreboard</button>
+    </section>
+    <section aria-labelledby="matches-title">
+      <h2 id="matches-title">Trận đã hoàn tất</h2>
+      <p>Dùng <strong>Thêm trận</strong> cho trận trước. Khi trận đang hiển thị kết thúc, dùng <strong>Chốt trận đang hiển thị</strong> để thay điểm live bằng kết quả chính thức.</p>
+      <ul id="matches"></ul>
+      <iframe id="details" title="Chi tiết trận đấu" hidden></iframe>
+    </section>
+    <section aria-labelledby="live-title">
+      <h2 id="live-title">Theo dõi trực tiếp</h2>
+      <details>
+        <summary>Nhật ký hoạt động</summary>
+        <pre id="terminal">Chưa có phiên theo dõi.</pre>
+      </details>
+      <div class="scoreboard-controls">
+        <article>
+          <h3>Scoreboard</h3>
+          <div class="row scoreboard-motion-controls">
+            <button id="scoreboard-show" type="button" class="primary">CHẠY BẢNG ĐIỂM</button>
+            <button id="scoreboard-hide" type="button">TẮT BẢNG ĐIỂM</button>
+            <p id="scoreboard-motion-status" role="status"></p>
+          </div>
+          <form id="scoreboard-cpr-form" class="scoreboard-cpr-controls">
+            <h4>Chế độ CPR</h4>
+            <div class="scoreboard-dimensions">
+              <div>
+                <label for="scoreboard-cpr-points">Điểm CPR</label>
+                <input id="scoreboard-cpr-points" type="number" min="1" step="1" placeholder="Ví dụ 70">
+                <small>Để trống để tắt CPR.</small>
+              </div>
+              <div>
+                <span class="scoreboard-cpr-label">Icon CPR</span>
+                <div class="cpr-badge"><img src="/overlays/Scoreboard/assets/cpr-crown.png" alt="Vương miện CPR"></div>
+                <small>Nền tự lấy từ HUD_PIC.</small>
+              </div>
+            </div>
+            <div class="row">
+              <button id="scoreboard-cpr-save" type="submit">Áp dụng CPR</button>
+            </div>
+            <p id="scoreboard-cpr-status" role="status"></p>
+          </form>
+          <div class="preview-viewport scoreboard-viewport"><iframe data-overlay="Scoreboard" data-preview-width="404" title="Scoreboard có thể chọn đội"></iframe></div>
+          <div class="scoreboard-size-controls">
+            <div class="scoreboard-dimensions">
+              <div>
+                <label for="scoreboard-width">Chiều rộng (px)</label>
+                <input id="scoreboard-width" type="number" min="1" max="4096" step="1" placeholder="Tự động">
+              </div>
+              <div>
+                <label for="scoreboard-height">Chiều cao (px)</label>
+                <input id="scoreboard-height" type="number" min="1" max="4096" step="1" placeholder="Tự động">
+              </div>
+            </div>
+            <small>Để trống một ô để bảng tự giữ tỷ lệ. Bảng tự co nếu khung OBS nhỏ hơn kích thước đã nhập.</small>
+            <div class="row">
+              <a id="scoreboard-obs-link" href="/overlays/Scoreboard/" target="_blank" rel="noopener">Mở nguồn OBS</a>
+              <button id="scoreboard-copy-link" type="button">Sao chép link OBS</button>
+            </div>
+            <input id="scoreboard-obs-url" type="text" aria-label="Đường dẫn Scoreboard cho OBS" readonly>
+            <p id="scoreboard-copy-status" role="status"></p>
+          </div>
+        </article>
+        <article aria-labelledby="branding-title">
+          <h3 id="branding-title">Chỉnh tên và logo đội</h3>
+          <div class="branding-bulk">
+            <label for="branding-bulk-upload">Thêm logo hàng loạt theo tên file</label>
+            <input id="branding-bulk-upload" type="file" accept=".png,.jpg,.jpeg,.webp,.gif" multiple>
+            <small>Đặt tên ảnh theo đội, ví dụ GHE.png. Trong cửa sổ chọn file, nhấn Ctrl+A rồi Open để nhập ngay.</small>
+            <p id="branding-bulk-status" role="status"></p>
+          </div>
+          <p>Bấm trực tiếp vào logo hoặc tên trên Scoreboard. Chọn ảnh để đổi logo, hoặc nhập tên mới rồi nhấn Enter. Nhấn Esc để hủy sửa tên.</p>
+          <p id="branding-inline-status" role="status"></p>
+        </article>
+      </div>
+      <div class="previews">
+        <article>
+          <h3>Eliminated</h3>
+          <div class="preview-viewport"><iframe data-overlay="Eliminated" title="Xem trước Eliminated"></iframe></div>
+          <a href="/overlays/Eliminated/" target="_blank" rel="noopener">Nguồn OBS</a>
+        </article>
+        <article>
+          <h3>WinRate</h3>
+          <div class="preview-viewport"><iframe data-overlay="WinRate" title="Xem trước WinRate"></iframe></div>
+          <a href="/overlays/WinRate/" target="_blank" rel="noopener">Nguồn OBS</a>
+        </article>
+      </div>
+    </section>
+    <details>
+      <summary>Quản lý Group, người chơi và CSV</summary>
+      <iframe id="management" title="Quản lý dữ liệu giải"></iframe>
+    </details>
+  </main>
+</body>
+</html>

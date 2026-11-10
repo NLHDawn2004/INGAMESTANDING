@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./index.css">
+  <link rel="stylesheet" href="./cpr.css">
+  <title>Scoreboard Realtime</title>
+</head>
+
+<body>
+  <svg width="0" height="0" class="scoreboard-filters" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="scoreboard-alive-yellow" color-interpolation-filters="sRGB">
+        <feFlood flood-color="#ffd400" result="yellow"></feFlood>
+        <feComposite in="yellow" in2="SourceAlpha" operator="in"></feComposite>
+      </filter>
+    </defs>
+  </svg>
+  <div class="container" id="container">
+    <!-- <h1 id="status">Trạng thái: Đang kết nối...</h1> -->
+    <div class="top-item">
+      <span class="header-team">TEAM</span>
+      <span class="rank-row-data-elims">ELIMS</span>
+      <span class="rank-row-data-points">PTS</span>
+      <span class="rank-row-data-alive">ALIVE</span>
+    </div>
+    <div class="ranks" id="ranks">
+    </div>
+    <div class="footer">
+      <span>ALIVE <img src="./assets/PlayerAlive.png" alt=""></span>
+      <span>ELIMINATED <img src="./assets/PlayerEliminated.png" alt=""></span>
+    </div>
+  </div>
+
+  <script src="../overlay-connection.js"></script>
+  <script src="../team-branding.js"></script>
+  <script>
+    const wss = connectOverlay(11019);
+    const eliminationSocket = connectOverlay(11020, { announceReady: false });
+    const ranks = document.getElementById("ranks");
+    const statusText = document.getElementById('status');
+    if (location.protocol !== "file:") {
+      const board = document.getElementById("container");
+      board.classList.add("scoreboard-motion-hidden");
+      import("./motion.js").then(({ connectScoreboardMotion }) => connectScoreboardMotion(board, updateCpr))
+        .catch(() => board.classList.remove("scoreboard-motion-hidden"));
+    }
+    let paintKv;
+    if (location.protocol !== "file:") {
+      import("./kv-theme.js").then(({ connectScoreboardKv }) => {
+        paintKv = connectScoreboardKv(ranks);
+      });
+    }
+    const editPreview = window.parent !== window && new URLSearchParams(location.search).get("edit") === "1";
+    if (location.protocol !== "file:") {
+      import("./size.js").then(({ connectScoreboardSize }) => {
+        connectScoreboardSize(document.getElementById("container"), editPreview);
+      });
+    }
+    let bindEditor;
+    if (editPreview) {
+      import("./editor.js").then(({ createScoreboardEditor }) => {
+        bindEditor = createScoreboardEditor(ranks, () => applyTeamBranding.refresh(), () => updateStandings([]));
+        bindEditor();
+      });
+    }
+
+    const PlayerStatus = {
+      ALIVE: 'ALIVE',
+      KNOCKED: 'KNOCKED',
+      ELIMINATED: 'ELIMINATED'
+    };
+
+    const playerLatestStatus = new Map();
+    const teamScores = new Map();
+    let cpr = { threshold: null, iconUrl: "" };
+    const prevMatchesScores = new Map();
+    const prevMatchesElims = new Map();
+    const allTeamsData = new Map(); // Lưu trữ tất cả team data (cả hiển thị và ẩn)
+    const confirmedEliminations = new Map();
+    const eliminationDuration = 3400;
+    const applyTeamBranding = connectTeamBranding(apply => {
+      ranks.querySelectorAll(".rank-row").forEach(row => apply(
+        row.id, row.querySelector(".rank-row-data-teamname span"), row.querySelector(".rank-row-data-logo img")
+      ));
+    });
+
+    function normalizeTeamName(name) {
+      return name ? String(name).trim() : "";
+    }
+
+    function updateCpr(settings) {
+      cpr = settings;
+      paintCpr();
+    }
+
+    function paintCpr() {
+      for (const row of ranks.querySelectorAll(".rank-row")) {
+        const marker = row.querySelector(".rank-row-rush-status");
+        marker.hidden = !Number.isSafeInteger(cpr.threshold) || (teamScores.get(row.id) ?? 0) < cpr.threshold;
+        if (!marker.hidden) {
+          const image = marker.querySelector("img");
+          if (image.getAttribute("src") !== cpr.iconUrl) image.src = cpr.iconUrl;
+        }
+      }
+    }
+
+    function renderElimination(row) {
+      const started = confirmedEliminations.get(row.id);
+      if (started === undefined) return;
+      const elapsed = performance.now() - started;
+      row.classList.add("wiped");
+      row.style.setProperty("--elimination-delay", `${-elapsed}ms`);
+      row.classList.toggle("elimination-active", elapsed < eliminationDuration);
+    }
+
+    eliminationSocket.onmessage = event => {
+      const message = JSON.parse(event.data);
+      if (message.type !== "team_eliminated" || !Array.isArray(message.data)) return;
+      for (const item of message.data) {
+        const team = normalizeTeamName(item.teamName);
+        if (!team || confirmedEliminations.has(team)) continue;
+        const started = performance.now();
+        confirmedEliminations.set(team, started);
+        const row = document.getElementById(team);
+        if (row) renderElimination(row);
+        setTimeout(() => {
+          if (confirmedEliminations.get(team) === started) {
+            document.getElementById(team)?.classList.remove("elimination-active");
+          }
+        }, eliminationDuration);
+      }
+    };
+
+    function checkTeamWiped(teamName) {
+      const nName = normalizeTeamName(teamName);
+      const teamRow = document.getElementById(nName);
+      if (!teamRow) return;
+
+      // Lấy danh sách player của team này
+      const teamPlayers = Array.from(playerLatestStatus.values())
+        .filter(p => normalizeTeamName(p.teamName) === nName);
+
+      // Điều kiện: Có player và tất cả đều ELIMINATED
+      const isWiped = teamPlayers.length > 0 && teamPlayers.every(p => p.status === PlayerStatus.ELIMINATED);
+
+      teamRow.classList.toggle("wiped", isWiped || confirmedEliminations.has(nName));
+    }
+
+    function onRenderPlayerStatus(teamName, playerID, status) {
+      const nName = normalizeTeamName(teamName);
+      const teamRow = document.getElementById(nName);
+
+      if (!teamRow) {
+        console.error(`[TRACE-RENDER] THẤT BẠI: Không tìm thấy hàng Team "${nName}" trong DOM cho Player ${playerID}.`);
+        return false;
+      }
+
+      const container = teamRow.querySelector(".rank-row-data-alive");
+      if (!container) {
+        console.error(`[TRACE-RENDER] THẤT BẠI: Không tìm thấy container .rank-row-data-alive của team ${nName}`);
+        return false;
+      }
+
+      const imgs = Array.from(container.querySelectorAll("img"));
+      const pIDStr = String(playerID);
+
+      let targetImg = imgs.find(img => img.dataset.playerId === pIDStr);
+      if (!targetImg) {
+        targetImg = imgs.find(img => !img.dataset.playerId);
+        if (targetImg) targetImg.dataset.playerId = pIDStr;
+      }
+
+      if (status === PlayerStatus.ALIVE) {
+        if (targetImg) targetImg.src = './assets/PlayerAlive.png';
+      } else {
+        if (targetImg) {
+          targetImg.src = status === PlayerStatus.KNOCKED ?
+            "./assets/PlayerKnock.png" :
+            "./assets/PlayerEliminated.png";
+          console.log(`[TRACE-RENDER] Cập nhật trạng thái ${status} cho Player ${pIDStr} (Team ${nName})`);
+        } else {
+          console.warn(`[TRACE-RENDER] Không thể cập nhật trạng thái ${status} vì Player ${pIDStr} chưa có slot trong team ${nName}`);
+        }
+      }
+      return true;
+    }
+
+    function flushPlayerQueue() {
+      console.log(`[TRACE-QUEUE] Bắt đầu xả hàng chờ. Số lượng player trong Map: ${playerLatestStatus.size}`);
+      let successCount = 0;
+      playerLatestStatus.forEach((val, pID) => {
+        if (onRenderPlayerStatus(val.teamName, pID, val.status)) {
+          successCount++;
+        }
+      });
+      console.log(`[TRACE-QUEUE] Xả hàng chờ xong. Thành công: ${successCount}/${playerLatestStatus.size}`);
+    }
+
+    function updateStandings(changes) {
+      console.log(`[TRACE-SCORE] Nhận thay đổi điểm cho ${changes.length} đội.`);
+      const rows = Array.from(document.querySelectorAll(".rank-row"));
+      const firstPositions = new Map();
+
+      rows.forEach(row => firstPositions.set(row.id, row.getBoundingClientRect().top));
+
+      changes.forEach(item => {
+        const teamId = normalizeTeamName(item.teamName);
+        const currentTotal = (prevMatchesScores.get(teamId) || 0) + (Number(item.points) || 0);
+        teamScores.set(teamId, currentTotal);
+
+        // Cập nhật điểm trong allTeamsData (nếu tồn tại)
+        if (allTeamsData.has(teamId)) {
+          allTeamsData.get(teamId).score = currentTotal;
+        }
+
+        const row = document.getElementById(teamId);
+        if (row) {
+          const scoreEl = row.querySelector(".rank-row-data-points");
+          if (scoreEl) scoreEl.textContent = String(currentTotal);
+          const elimsEl = row.querySelector(".rank-row-data-elims");
+          const elims = (prevMatchesElims.get(teamId) || 0) + (Number(item.elims ?? item.points) || 0);
+          if (elimsEl) elimsEl.textContent = String(elims);
+        }
+      });
+
+      // Tính thứ hạng từ tất cả team data (kể cả không hiển thị)
+      const allTeamsArray = Array.from(allTeamsData.values());
+      allTeamsArray.sort((a, b) => b.score - a.score);
+
+      const rankMap = new Map();
+      allTeamsArray.forEach((team, index) => {
+        rankMap.set(team.name, index + 1);
+      });
+
+      // Cập nhật thứ hạng cho các row hiển thị
+      rows.forEach(row => {
+        const actualRank = rankMap.get(row.id);
+        const rankTitle = row.querySelector(".rank-row-data-title");
+        if (rankTitle && actualRank) {
+          rankTitle.innerText = `#${actualRank}`;
+          row.dataset.rank = actualRank;
+        }
+      });
+      paintKv?.();
+      paintCpr();
+
+      // Moving a row would blur the name input while the operator is typing.
+      if (ranks.querySelector(".scoreboard-name-input")) return;
+      rows.sort((a, b) => (rankMap.get(a.id) || Infinity) - (rankMap.get(b.id) || Infinity));
+
+      // Append lại các row vào DOM theo thứ tự mới
+      rows.forEach((row, index) => {
+        const before = ranks.children[index];
+        if (row === before) return;
+        if (ranks.moveBefore) ranks.moveBefore(row, before || null);
+        else ranks.insertBefore(row, before || null);
+      });
+
+      rows.forEach(row => {
+        const delta = firstPositions.get(row.id) - row.getBoundingClientRect().top;
+        if (delta) {
+          row.style.transform = `translateY(${delta}px)`;
+          row.style.transition = "none";
+          row.offsetHeight;
+          row.style.transition = "transform 0.45s cubic-bezier(.4, 0, .2, 1)";
+          row.style.transform = "";
+        }
+      });
+    }
+
+    wss.addEventListener("open", () => {
+      ranks.replaceChildren();
+      playerLatestStatus.clear();
+      teamScores.clear();
+      prevMatchesScores.clear();
+      prevMatchesElims.clear();
+      allTeamsData.clear();
+      confirmedEliminations.clear();
+      if (editPreview) window.parent.postMessage({ type: "ff-scoreboard-teams", teams: [] }, location.origin);
+    });
+
+    wss.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      console.log(`[TRACE-WS] Nhận Event: ${data.type}`, data);
+
+      if (data.type === "team_data_inited") {
+        ranks.innerHTML = "";
+        allTeamsData.clear(); // Clear dữ liệu team cũ
+        prevMatchesElims.clear();
+
+        const teamData = Array.isArray(data.teamData) ? data.teamData : [];
+
+        const todayTeamNames = new Set(
+          teamData
+            .filter(teamItem => teamItem.isInTodayList === true)
+            .map(teamItem => teamItem.teamName)
+            .map(normalizeTeamName)
+            .filter(Boolean)
+        );
+        const todayTeamsNotPlayed = new Set(
+          teamData
+            .filter(teamItem => teamItem.isInTodayListButNotPlayed === true)
+            .map(teamItem => teamItem.teamName)
+            .map(normalizeTeamName)
+            .filter(Boolean)
+        );
+
+        const allTeams = [];
+        const displayTeams = [];
+
+        teamData.forEach((teamItem) => {
+          const name = normalizeTeamName(teamItem.teamName);
+          const score = Number(teamItem.totalScore) || 0;
+          if (!name) return;
+
+          allTeamsData.set(name, {
+            name,
+            item: teamItem,
+            score,
+          });
+          allTeams.push({
+            name,
+            item: teamItem,
+            score,
+          });
+
+          // Chỉ hiển thị các team nằm trong danh sách thi đấu hôm nay.
+          const isInTodayList =
+            teamItem.isInTodayList === true || todayTeamNames.has(name);
+          if (!isInTodayList) return;
+
+          const isInTodayListButNotPlayed =
+            teamItem.isInTodayListButNotPlayed === true ||
+            todayTeamsNotPlayed.has(name);
+
+          displayTeams.push({
+            name,
+            item: teamItem,
+            score,
+            isInTodayListButNotPlayed,
+          });
+        });
+
+        // Tính thứ hạng thật từ toàn bộ team nhận được.
+        allTeams.sort((a, b) => b.score - a.score);
+        const rankMap = new Map();
+        allTeams.forEach((team, index) => {
+          rankMap.set(team.name, index + 1);
+        });
+
+        // Team hiển thị vẫn là team trong danh sách hôm nay nhưng sort theo hạng thật.
+        displayTeams.forEach((teamData) => {
+          teamData.actualRank = rankMap.get(teamData.name) || Infinity;
+        });
+        displayTeams.sort((a, b) => a.actualRank - b.actualRank);
+        displayTeams.forEach((teamData) => {
+          const name = teamData.name;
+          const teamItem = teamData.item;
+          const actualRank = teamData.actualRank;
+
+          const row = document.createElement("div");
+          row.className = "rank-row";
+          row.id = name;
+          row.dataset.rank = actualRank;
+
+          teamScores.set(name, Number(teamItem.totalScore) || 0);
+          prevMatchesScores.set(name, Number(teamItem.totalScore) || 0);
+          prevMatchesElims.set(name, Number(teamItem.elims) || 0);
+
+          row.innerHTML = `
+            <div class="rank-row-rush-status cpr-badge" hidden><img alt="CPR"></div>
+            <div class="rank-row-data">
+                <div class="rank-row-data-title">#${actualRank}</div>
+                <div class="rank-row-data-logo">
+                    <img alt="">
+                </div>
+                <div class="rank-row-data-teamname"><span></span></div>
+                <div class="rank-row-data-elims">${prevMatchesElims.get(name)}</div>
+                <div class="rank-row-data-points">${Number(teamItem.totalScore)}</div>
+                <div class="rank-row-data-alive">
+                    <img src="./assets/PlayerEliminated.png"/>
+                    <img src="./assets/PlayerEliminated.png"/>
+                    <img src="./assets/PlayerEliminated.png"/>
+                    <img src="./assets/PlayerEliminated.png"/>
+                </div>
+            </div>
+            <img class="rank-row-background" src="./assets/TeamRow.png" alt="">
+            <div class="row-elimination-banner">ELIMINATED</div>
+        `;
+          applyTeamBranding(name, row.querySelector(".rank-row-data-teamname span"), row.querySelector(".rank-row-data-logo img"));
+          ranks.appendChild(row);
+
+          // Team trong danh sách hôm nay nhưng không thi đấu sẽ hiển thị wiped.
+          if (teamData.isInTodayListButNotPlayed) {
+            row.classList.add('wiped');
+            console.log(`[TRACE-INIT] Team ${name} trong danh sách hôm nay nhưng không thi đấu. Áp dụng wiped.`);
+          }
+          renderElimination(row);
+        });
+        if (editPreview) {
+          window.parent.postMessage({
+            type: "ff-scoreboard-teams",
+            teams: displayTeams.map(team => team.name),
+            boardHeight: ranks.parentElement.offsetHeight,
+          }, location.origin);
+        }
+        paintKv?.();
+        paintCpr();
+        bindEditor?.();
+        flushPlayerQueue();
+        displayTeams.forEach(team => {
+          if (!team.isInTodayListButNotPlayed) checkTeamWiped(team.name);
+        });
+      }
+
+      if (data.type === "altered_event") {
+        data.playerData.forEach(player => {
+          const pID = String(player.originID);
+          playerLatestStatus.set(pID, {
+            teamName: player.teamName,
+            status: PlayerStatus.ALIVE
+          });
+          onRenderPlayerStatus(player.teamName, pID, PlayerStatus.ALIVE);
+        });
+      }
+
+      // if (data.type === "knockdown_event") {
+      //     data.data.forEach(knock => {
+      //         const pID = String(knock.downed.originID);
+      //         if (playerLatestStatus.has(pID)) {
+      //             playerLatestStatus.get(pID).status = PlayerStatus.KNOCKED;
+      //             onRenderPlayerStatus(knock.downed.teamName, pID, PlayerStatus.KNOCKED);
+      //         }
+      //     });
+      // }
+
+      if (data.type === "revive_event") {
+        console.log(`[TRACE-WS] Xử lý hồi sinh cho ${data.data.length} player.`);
+        data.data.forEach(reviveInfo => {
+          const pID = String(reviveInfo.originID);
+
+          // Kiểm tra nếu player đã tồn tại trong danh sách quản lý
+          if (playerLatestStatus.has(pID)) {
+            // Cập nhật trạng thái mới là ALIVE
+            playerLatestStatus.get(pID).status = PlayerStatus.ALIVE;
+
+            // Re-render icon sang trạng thái PlayerAlive.png
+            onRenderPlayerStatus(reviveInfo.teamName, pID, PlayerStatus.ALIVE);
+            checkTeamWiped(reviveInfo.teamName);
+
+            console.log(`[TRACE-REVIVE] Player ${pID} (Team ${reviveInfo.teamName}) đã hồi sinh.`);
+          }
+        });
+      }
+
+      if (data.type === "dead_event") {
+        data.data.forEach(deadPlayer => {
+          const pID = String(deadPlayer.victim.originID);
+          if (playerLatestStatus.has(pID)) {
+            playerLatestStatus.get(pID).status = PlayerStatus.ELIMINATED;
+            onRenderPlayerStatus(deadPlayer.victim.teamName, pID, PlayerStatus.ELIMINATED);
+
+            checkTeamWiped(deadPlayer.victim.teamName);
+          }
+        });
+      }
+
+      if (data.type === "score_change") {
+        updateStandings(data.data);
+      }
+    };
+
+    // wss.onopen = () => { statusText.textContent = 'Trạng thái: Đã kết nối!'; statusText.style.color = "lime"; };
+    // wss.onclose = () => { statusText.textContent = 'Trạng thái: Mất kết nối!'; statusText.style.color = "red"; };
+  </script>
+</body>
+
+</html>
