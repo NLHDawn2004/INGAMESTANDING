@@ -222,6 +222,7 @@ img[src$="/PlayerAlive.png"] { filter: url(#scoreboard-alive-yellow); }
   z-index: 1;
   width: 100%;
   height: 100%;
+  overflow: visible;
   pointer-events: none;
   fill: none;
 }
@@ -234,9 +235,10 @@ img[src$="/PlayerAlive.png"] { filter: url(#scoreboard-alive-yellow); }
   stroke: white;
   stroke-width: 2;
   stroke-linecap: round;
-  stroke-dasharray: 9 91;
+  stroke-dasharray: 20 80;
   vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 2px white);
+  filter: drop-shadow(0 0 1px rgb(255 255 255 / 90%))
+    drop-shadow(0 0 3px rgb(255 255 255 / 55%));
   animation: cpr-border-trace 2s linear infinite;
 }
 
