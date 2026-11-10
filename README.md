@@ -30,14 +30,22 @@ Phần **Theo dõi trực tiếp** có nhật ký và ba bản xem trước. Dù
 
 ## Yêu cầu môi trường
 
-- Node.js 18+ (khuyến nghị dùng Node.js bản LTS mới)
+- Node.js 24 LTS
 - npm
 
 ## Cài đặt
 
 ```bash
-npm install
+npm ci
 ```
+
+Trên Windows, sao chép `.env.example` thành `.env` nếu muốn chạy tại `http://localhost:4000`.
+
+## Khôi phục cấu hình TOOLFINAL
+
+Thư mục `presets/TOOLFINAL` chứa bản lưu tên đội, 14 logo, cấu hình CPR và ảnh HUD. Để dùng lại trên máy Windows, đóng tool rồi chép `team-branding.json`, `scoreboard-cpr.json`, `team-logos` và `hud-kv-backups` từ thư mục đó vào thư mục gốc của dự án. Nếu đang có cấu hình khác, sao lưu trước khi chép đè.
+
+Tool đọc ảnh HUD đang dùng từ thư mục `HUD_PIC` của Free Fire. Để khôi phục nền đã lưu, sao lưu ảnh đang dùng rồi chép `hud-kv-backups/ScoreboardBackground.active.png` thành `ScoreboardBackground.png` trong `HUD_PIC`.
 
 ## Chạy dự án
 
