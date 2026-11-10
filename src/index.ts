@@ -18,7 +18,7 @@ configDotenv();
 
 const app = express();
 const hosted = process.env.RENDER === "true" || process.env.SCOREBOARD_HOSTED === "true";
-const hostedAccess = hosted ? createHostedAccess(process.env.SCOREBOARD_PASSWORD) : null;
+const hostedAccess = hosted ? createHostedAccess(process.env.SCOREBOARD_CONTROL_KEY || process.env.SCOREBOARD_PASSWORD) : null;
 const port = Number(process.env.PORT || process.env.LOCAL_PORT || 3000);
 const hostedLogDirectory = hosted ? fs.mkdtempSync(path.join(os.tmpdir(), "ff-scoreboard-")) : null;
 const hostedLogPath = hostedLogDirectory && path.join(hostedLogDirectory, "debug.log");
@@ -214,6 +214,12 @@ app.use(express.json());
 // Serve static files from src/ui
 const uiPath = path.resolve(process.cwd(), 'src/ui');
 app.get('/api/runtime', (_req, res) => res.json({ hosted }));
+if (hostedAccess) {
+  app.get('/control', (_req, res) => {
+    res.set("Referrer-Policy", "no-referrer").sendFile(path.join(uiPath, "control.html"));
+  });
+  app.post('/control', hostedAccess.open);
+}
 app.use(express.static(uiPath, { index: false }));
 app.use('/overlays', express.static(path.resolve(process.cwd(), 'template')));
 
@@ -288,7 +294,9 @@ app.get('/api/health', (req, res) => {
  * Serve UI (index.html)
  */
 app.get('/', (req, res) => {
-  res.sendFile(path.join(uiPath, 'dashboard.html'));
+  const showControlLinkPage = hostedAccess && !hostedAccess.authorized(req);
+  if (showControlLinkPage) res.set("Referrer-Policy", "no-referrer");
+  res.sendFile(path.join(uiPath, showControlLinkPage ? "control.html" : "dashboard.html"));
 });
 
 app.post('/create-listener', (req, res) => {
