@@ -22,9 +22,29 @@ function revision(data: Buffer) {
 }
 
 export function createHudKvRouter(
-  hudDirectory = process.env.HUD_PIC_DIRECTORY || defaultHudDirectory,
+  hudDirectory?: string,
   backupDirectory = path.resolve("hud-kv-backups"),
 ) {
+  const configuredDirectory = hudDirectory || process.env.HUD_PIC_DIRECTORY;
+  const scoreboardOnly = !configuredDirectory && !fs.existsSync(path.join(defaultHudDirectory, fileName));
+  hudDirectory = configuredDirectory || (scoreboardOnly ? path.resolve("hud-local") : defaultHudDirectory);
+  if (scoreboardOnly) {
+    fs.mkdirSync(hudDirectory, { recursive: true });
+    const assets = path.resolve("template/Scoreboard/assets");
+    const copies = [
+      [fileName, path.join(backupDirectory, "ScoreboardBackground.active.png"), path.join(assets, "HudDefault.png")],
+      ["ScoreboardBackground.original.png", path.join(backupDirectory, "ScoreboardBackground.original.png"), path.join(assets, "HudReference.png")],
+    ];
+    for (const [name, saved, bundled] of copies) {
+      const destination = path.join(hudDirectory, name);
+      if (fs.existsSync(destination)) continue;
+      const source = fs.existsSync(saved) ? saved : bundled;
+      const data = fs.readFileSync(source);
+      if (!isHudPng(data)) throw new Error(`Ảnh mẫu HUD không hợp lệ: ${source}`);
+      fs.writeFileSync(destination, data, { flag: "wx" });
+    }
+    backupDirectory = hudDirectory;
+  }
   const router = express.Router();
   const target = path.resolve(hudDirectory, fileName);
   const baseline = path.join(backupDirectory, "ScoreboardBackground.original.png");
@@ -59,6 +79,7 @@ export function createHudKvRouter(
         return res.status(422).json({ message: "Ảnh HUD hiện tại phải là PNG 330 × 590 px." });
       }
       return res.set("Cache-Control", "no-store").set("X-Hud-Revision", revision(current))
+        .set("X-Hud-Scope", scoreboardOnly ? "scoreboard" : "hud")
         .type("png").send(original);
     } catch {
       return res.status(404).json({ message: "Không đọc được ScoreboardBackground.png trong HUD_PIC." });
@@ -81,7 +102,7 @@ export function createHudKvRouter(
       if (req.get("X-Hud-Revision") !== revision(current)) {
         return res.status(409).json({ message: "HUD đã thay đổi. Hãy chọn lại KV để xem trước." });
       }
-      if (current.equals(req.body)) return res.json({ unchanged: true });
+      if (current.equals(req.body)) return res.json({ unchanged: true, scoreboardOnly });
 
       fs.mkdirSync(backupDirectory, { recursive: true });
       if (!fs.existsSync(baseline)) fs.writeFileSync(baseline, current, { flag: "wx" });
@@ -89,7 +110,7 @@ export function createHudKvRouter(
       fs.writeFileSync(path.join(backupDirectory, backupName), current, { flag: "wx" });
       fs.writeFileSync(temporary, req.body, { flag: "wx" });
       fs.renameSync(temporary, target);
-      return res.json({ backupName, revision: revision(req.body) });
+      return res.json({ backupName, revision: revision(req.body), scoreboardOnly });
     } catch {
       try {
         fs.rmSync(temporary, { force: true });

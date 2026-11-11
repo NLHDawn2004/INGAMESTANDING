@@ -55,9 +55,10 @@ async function analyze(files) {
     if (referenceUrl) URL.revokeObjectURL(referenceUrl);
     referenceUrl = URL.createObjectURL(baseline);
     referenceImage.src = referenceUrl;
-    prepared = { blob, revision };
+    const scoreboardOnly = response.headers.get("X-Hud-Scope") === "scoreboard";
+    prepared = { blob, revision, scoreboardOnly };
     preview.hidden = false;
-    const destination = document.body.hasAttribute("data-hosted") ? "Scoreboard trên web" : "HUD và Scoreboard Realtime";
+    const destination = scoreboardOnly ? "Scoreboard" : document.body.hasAttribute("data-hosted") ? "Scoreboard trên web" : "HUD và Scoreboard Realtime";
     report(`Đã xem trước ${source.name}. Bấm Áp dụng để đổi nền ${destination}.`);
   } catch (error) {
     report(error.message || "Không đọc được KV.", true);
@@ -93,7 +94,7 @@ apply.addEventListener("click", async () => {
     }
     document.querySelector('iframe[data-overlay="Scoreboard"]')?.contentWindow
       ?.postMessage({ type: "ff-hud-kv-refresh" }, location.origin);
-    const destination = document.body.hasAttribute("data-hosted") ? "Scoreboard trên web" : "HUD và Scoreboard Realtime";
+    const destination = result.scoreboardOnly ? "Scoreboard" : document.body.hasAttribute("data-hosted") ? "Scoreboard trên web" : "HUD và Scoreboard Realtime";
     report(result.unchanged ? `${destination} đã dùng ảnh này.`
       : `Đã áp dụng KV cho ${destination}. Bản sao lưu: ${result.backupName}.`);
   } catch (error) {

@@ -47,6 +47,8 @@ Thư mục `presets/TOOLFINAL` chứa bản lưu tên đội, 14 logo, cấu hì
 
 Tool đọc ảnh HUD đang dùng từ thư mục `HUD_PIC` của Free Fire. Để khôi phục nền đã lưu, sao lưu ảnh đang dùng rồi chép `hud-kv-backups/ScoreboardBackground.active.png` thành `ScoreboardBackground.png` trong `HUD_PIC`.
 
+Trên máy khác, nếu không tìm thấy thư mục HUD mặc định, tool dùng ảnh mẫu đi kèm và lưu KV cho Scoreboard trong `hud-local`. Để thay cả HUD trong game, đặt `HUD_PIC_DIRECTORY` trong file `.env` thành đường dẫn thư mục `HUD_PIC` trên máy đó rồi khởi động lại tool.
+
 ## Chạy dự án
 
 ### Chế độ development
