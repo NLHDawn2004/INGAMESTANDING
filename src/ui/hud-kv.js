@@ -1,7 +1,6 @@
 import { HUD_WIDTH, HUD_HEIGHT, buildHudBackground, pickKvFile } from "./hud-kv-data.mjs";
 
 const byId = id => document.getElementById(id);
-const folder = byId("hud-kv-folder");
 const image = byId("hud-kv-image");
 const status = byId("hud-kv-status");
 const preview = byId("hud-kv-preview");
@@ -17,7 +16,6 @@ function report(message, error = false) {
 }
 
 function setBusy(busy) {
-  folder.disabled = busy;
   image.disabled = busy;
   apply.disabled = busy || !prepared;
 }
@@ -68,13 +66,11 @@ async function analyze(files) {
   }
 }
 
-for (const input of [folder, image]) {
-  input.addEventListener("change", () => {
-    const files = [...input.files];
-    input.value = "";
-    if (files.length) void analyze(files);
-  });
-}
+image.addEventListener("change", () => {
+  const files = [...image.files];
+  image.value = "";
+  if (files.length) void analyze(files);
+});
 
 apply.addEventListener("click", async () => {
   if (!prepared) return;

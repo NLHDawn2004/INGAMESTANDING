@@ -57,7 +57,7 @@ if (hosted) {
   debugPath.hidden = byId("local-debug-help").hidden = true;
   byId("hosted-debug-help").hidden = pickDebug.hidden = false;
   document.querySelector('label[for="debug-path"]').htmlFor = "pick-debug";
-  byId("hud-kv-description").textContent = "Chọn thư mục KV hoặc một ảnh để thay nền Scoreboard trên web.";
+  byId("hud-kv-description").textContent = "Chọn một ảnh KV để thay nền Scoreboard trên web.";
   byId("hud-kv-apply").textContent = "Áp dụng cho Scoreboard";
   byId("cpr-background-source").textContent = "Nền tự lấy từ KV của Scoreboard.";
   if (listenerId) report("Tab đã tải lại. Hãy dừng phiên và chọn lại file debug để tiếp tục.");
