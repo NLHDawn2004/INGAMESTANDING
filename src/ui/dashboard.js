@@ -300,7 +300,7 @@ byId("roster").addEventListener("change", async event => {
   const [file] = event.target.files;
   if (!file) return;
   try {
-    players = parseRoster(await file.text());
+    players = parseRoster(await file.text(), file.name);
     persist();
     renderRoster();
     report("Đã nạp danh sách người chơi.");
